@@ -50,5 +50,10 @@ compile_commands.json
 
 # QtCreator local machine specific files for imported projects
 *creator.user*
-
 *_qmlcache.qrc
+
+#build directories
+builds/
+
+# ccls
+.ccls-cache
