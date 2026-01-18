@@ -89,22 +89,6 @@ int main(int argc, char *argv[]) {
   bool startMinimized = parser.isSet(minimizedOption);
   bool notify = !parser.isSet(notifyOption);
 
-  /**
-   * This enables linux to use custom icons and names regardless of the binary
-   * name.
-   *
-   * When you set a unique App ID, the OS looks for a corresponding .desktop
-   * file with that same name. If you launch your app like this:
-   * ./webappcontainer --name "WhatsApp" --app-id "com.joseph.whatsapp"
-   *
-   * The Linux Shell looks for
-   * /usr/share/applications/com.joseph.whatsapp.desktop. If it finds it, it
-   * uses the icon and name defined in that file for the dock/taskbar, even
-   * though the binary is just webappcontainer.
-   *
-   * On Wayland, this sets the 'app_id'
-   * On X11, this sets the 'WM_CLASS'
-   */
   if (!appId.isEmpty()) {
     QString desktopPath =
         QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) +
