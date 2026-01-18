@@ -6,15 +6,16 @@
 #include "ui_passworddialog.h"
 #include "webauthdialog.h"
 #include "webpage.h"
-#include "webpopupwindow.h"
 #include <QAuthenticator>
 #include <QContextMenuEvent>
 #include <QDebug>
+#include <QDesktopServices>
 #include <QMenu>
 #include <QMessageBox>
 #include <QSettings>
 #include <QStyle>
 #include <QTimer>
+#include <QWebEngineContextMenuRequest>
 #include <QWebEngineProfile>
 
 using namespace Qt::StringLiterals;
@@ -181,12 +182,38 @@ QIcon WebView::favIcon() const {
 }
 
 void WebView::contextMenuEvent(QContextMenuEvent *event) {
+  QWebEngineContextMenuRequest *data = lastContextMenuRequest();
   QMenu *menu = createStandardContextMenu();
+
   const QList<QAction *> actions = menu->actions();
   for (QAction *action : actions) {
+    if (action == page()->action(QWebEnginePage::OpenLinkInNewWindow)) {
+      // If the user clicked on a link, add our custom action
+      if (!data->linkUrl().isEmpty()) {
+        QAction *externalAct = new QAction(tr("Open link in default browser"));
+
+        int openIndex = actions.indexOf(action);
+
+        if (openIndex != -1 && openIndex + 1 < actions.size()) {
+          // Insert after the 'Open link in new window' action
+          menu->insertAction(actions.at(openIndex + 1), externalAct);
+        } else {
+          // If 'Open link in new window' was the last item, just append
+          menu->addAction(externalAct);
+        }
+
+        // Connect the action to open the URL externally
+        connect(externalAct, &QAction::triggered,
+                [data]() { QDesktopServices::openUrl(data->linkUrl()); });
+      }
+
+      menu->removeAction(action);
+    }
+
     if (action == page()->action(QWebEnginePage::SavePage) ||
         action == page()->action(QWebEnginePage::InspectElement) ||
-        action == page()->action(QWebEnginePage::ViewSource)) {
+        action == page()->action(QWebEnginePage::ViewSource) ||
+        action == page()->action(QWebEnginePage::OpenLinkInNewTab)) {
 
       menu->removeAction(action);
     }

@@ -34,7 +34,6 @@ set(PROJECT_SOURCES
     downloadwidget.cpp downloadwidget.h downloadwidget.ui
     passworddialog.ui
     webpage.cpp webpage.h
-    webpopupwindow.cpp webpopupwindow.h
     webview.cpp webview.h
     webauthdialog.cpp webauthdialog.h webauthdialog.ui
     ${TS_FILES}

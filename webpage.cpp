@@ -3,6 +3,8 @@
 
 #include "webpage.h"
 #include "webview.h"
+
+#include <QDesktopServices>
 #include <QTimer>
 
 WebPage::WebPage(QWebEngineProfile *profile, QObject *parent)
@@ -40,4 +42,41 @@ void WebPage::handleDesktopMediaRequest(
     const QWebEngineDesktopMediaRequest &request) {
   // select the primary screen
   request.selectScreen(request.screensModel()->index(0));
+}
+
+bool WebPage::acceptNavigationRequest(const QUrl &url, NavigationType type,
+                                      bool isMainFrame) {
+  // Only intercept links clicked by the user
+  if (type == QWebEnginePage::NavigationTypeLinkClicked) {
+    // Check if the host is different from the current page
+    if (url.host() != this->url().host() && !this->url().isEmpty()) {
+      // Open in the default system browser
+      QDesktopServices::openUrl(url);
+      return false; // Prevent the web container from loading this URL
+    }
+  }
+
+  // Allow the container to load everything else (initial load, same-site
+  // navigation)
+  return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+}
+
+QWebEnginePage *WebPage::createWindow(WebWindowType type) {
+  // Handle JavaScript window.open() or target="_blank"
+  // Instead of creating a WebPopupWindow, we look at the requested navigation.
+
+  // Create a ghost page to catch the URL
+  QWebEnginePage *ghostPage = new QWebEnginePage(this->profile(), this);
+
+  connect(ghostPage, &QWebEnginePage::urlChanged, [ghostPage](const QUrl &url) {
+    if (url.isValid() && url != QUrl("about:blank")) {
+      QDesktopServices::openUrl(url);
+      // We've sent the URL to the browser, now kill the ghost page
+      ghostPage->deleteLater();
+    }
+  });
+
+  // Return the ghost page to the engine so it thinks it succeeded,
+  // but the URL will immediately trigger our signal above.
+  return ghostPage;
 }
