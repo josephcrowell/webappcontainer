@@ -19,11 +19,11 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Gui WebEngineWidgets LinguistTools)
-find_package(Qt6 REQUIRED COMPONENTS Core Gui WebEngineWidgets LinguistTools)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Gui WebEngineWidgets Svg LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui WebEngineWidgets Svg LinguistTools)
 
 set(TS_FILES webappcontainer_en_US.ts)
 
@@ -56,6 +56,7 @@ target_link_libraries(webappcontainer PUBLIC
     Qt::Core
     Qt::Gui
     Qt::WebEngineWidgets
+    Qt::Svg
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -78,6 +79,8 @@ install(TARGETS webappcontainer
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+install(FILES ${QM_FILES} DESTINATION ${CMAKE_INSTALL_DATADIR}/webappcontainer/translations)
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(webappcontainer)
