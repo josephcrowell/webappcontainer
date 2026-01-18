@@ -102,7 +102,7 @@ questionForPermissionType(QWebEnginePermission::PermissionType permissionType) {
 }
 
 void WebView::setPage(WebPage *page) {
-  if (auto oldPage = qobject_cast<WebPage *>(QWebEngineView::page())) {
+  if (auto oldPage = this->page()) {
     disconnect(oldPage, &WebPage::createCertificateErrorDialog, this,
                &WebView::handleCertificateError);
     disconnect(oldPage, &QWebEnginePage::authenticationRequired, this,
@@ -141,6 +141,10 @@ void WebView::setPage(WebPage *page) {
 #endif
   connect(page, &QWebEnginePage::webAuthUxRequested, this,
           &WebView::handleWebAuthUxRequested);
+}
+
+WebPage *WebView::page() const {
+  return qobject_cast<WebPage *>(QWebEngineView::page());
 }
 
 int WebView::loadProgress() const { return m_loadProgress; }

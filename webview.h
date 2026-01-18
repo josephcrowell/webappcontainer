@@ -27,6 +27,7 @@ public:
   explicit WebView(QWebEngineProfile *profile, QWidget *parent = nullptr);
   ~WebView();
   void setPage(WebPage *page);
+  WebPage *page() const;
 
   int loadProgress() const;
   bool isWebActionEnabled(QWebEnginePage::WebAction webAction) const;
