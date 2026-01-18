@@ -53,7 +53,8 @@ compile_commands.json
 *_qmlcache.qrc
 
 #build directories
-builds/
+/builds/
+/build/
 
 # ccls
 .ccls-cache
