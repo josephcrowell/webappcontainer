@@ -1,8 +1,0 @@
-{
-    "cmake.options.statusBarVisibility": "visible",
-    "cmake.buildDirectory": "${workspaceFolder}/builds/${buildKit}/${buildType}",
-    "cmake.useCMakePresets": "never",
-    "cmake.debugConfig": {
-        "args": ["--u", "https://dialpad.com/app", "--a", "com.dialpad.dialer", "--p", "dialpad", "--n", "DialPad", "--i", "/home/joseph/.local/share/icons/dialpad/dialpad.png", "--t", "/home/joseph/.local/share/icons/dialpad/dialpad-symbolic.png", "--minimized", "--no-notify"]
-    }
-}
