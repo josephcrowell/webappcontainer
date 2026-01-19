@@ -1,6 +1,6 @@
 # Web App Container
 
-A lightweight, persistent web container built with **C++20** and **Qt 6.8+**. This application allows you to run web applications as standalone desktop apps with isolated profiles, custom icons, and system tray integration.
+A lightweight, persistent web container built with **C++20** and **Qt 6.8+**. This application allows you to run web applications as standalone desktop apps with isolated profiles, custom icons, and system tray integration. It's a nice alternative to Electron or running web apps from Chrome/Chromium/Brave/Edge.
 
 ## ✨ Features
 
