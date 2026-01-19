@@ -2,6 +2,7 @@
 // SPDX - License - Identifier : GPL-2.0-or-later
 
 #include "webpage.h"
+#include "webpopupwindow.h"
 #include "webview.h"
 
 #include <QDesktopServices>
@@ -68,13 +69,23 @@ QWebEnginePage *WebPage::createWindow(WebWindowType type) {
   // Create a ghost page to catch the URL
   QWebEnginePage *ghostPage = new QWebEnginePage(this->profile(), this);
 
-  connect(ghostPage, &QWebEnginePage::urlChanged, [ghostPage](const QUrl &url) {
-    if (url.isValid() && url != QUrl("about:blank")) {
-      QDesktopServices::openUrl(url);
-      // We've sent the URL to the browser, now kill the ghost page
-      ghostPage->deleteLater();
-    }
-  });
+  connect(ghostPage, &QWebEnginePage::urlChanged,
+          [this, ghostPage](const QUrl &url) {
+            if (url.isValid() && url != QUrl("about:blank")) {
+              if (url.host().toLower().endsWith("facebook.com") ||
+                  url.host().toLower().endsWith("messenger.com") &&
+                      url.path().toLower().startsWith("/groupcall/")) {
+                // Create a popup window for Facebook calls
+                WebPopupWindow *popup = new WebPopupWindow(this->profile());
+                popup->view()->setUrl(url);
+                popup->show();
+              } else {
+                QDesktopServices::openUrl(url);
+              }
+              // We've sent the URL to the browser, now kill the ghost page
+              ghostPage->deleteLater();
+            }
+          });
 
   // Return the ghost page to the engine so it thinks it succeeded,
   // but the URL will immediately trigger our signal above.
