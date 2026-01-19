@@ -47,33 +47,33 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
   });
 
   // Create the tray icon Context Menu
-  trayMenu = new QMenu(this);
-  trayMenu->addAction(restoreAction);
-  trayMenu->addSeparator();
-  trayMenu->addAction(quitAction);
+  m_trayMenu = new QMenu(this);
+  m_trayMenu->addAction(restoreAction);
+  m_trayMenu->addSeparator();
+  m_trayMenu->addAction(quitAction);
 
   // Initialize Tray Icon
-  trayIcon = new QSystemTrayIcon(this);
-  trayIcon->setContextMenu(trayMenu);
+  m_trayIcon = new QSystemTrayIcon(this);
+  m_trayIcon->setContextMenu(m_trayMenu);
   if (appName.isEmpty()) {
-    trayIcon->setToolTip("Web App Container");
+    m_trayIcon->setToolTip("Web App Container");
   } else {
-    trayIcon->setToolTip(appName);
+    m_trayIcon->setToolTip(appName);
   }
 
   if (isValidImage(trayIconPath)) {
-    trayIcon->setIcon(QIcon(trayIconPath));
+    m_trayIcon->setIcon(QIcon(trayIconPath));
   } else if (isValidImage(iconPath)) {
     // Fallback to the window icon if no specific tray icon is provided
-    trayIcon->setIcon(QIcon(iconPath));
+    m_trayIcon->setIcon(QIcon(iconPath));
   } else {
-    trayIcon->setIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
+    m_trayIcon->setIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
   }
 
-  trayIcon->show();
+  m_trayIcon->show();
 
   // Handle double-click on tray icon
-  connect(trayIcon, &QSystemTrayIcon::activated,
+  connect(m_trayIcon, &QSystemTrayIcon::activated,
           [this](QSystemTrayIcon::ActivationReason reason) {
             if (reason == QSystemTrayIcon::Trigger) { // Trigger = Left Click
               if (this->isVisible() && !this->isMinimized()) {
@@ -155,13 +155,13 @@ void BrowserWindow::closeEvent(QCloseEvent *event) {
     event->accept();
   } else {
     // Check if the tray icon is actually functional
-    if (trayIcon->isVisible()) {
+    if (m_trayIcon->isVisible()) {
       this->hide();    // Hide the window from the taskbar and desktop
       event->ignore(); // "Ignore" means: Don't actually close/exit the app
 
       // Optional notification
       if (m_notify) {
-        trayIcon->showMessage(
+        m_trayIcon->showMessage(
             "Running in background",
             "The application is still active in the system tray.",
             QSystemTrayIcon::Information, 2000);
@@ -177,14 +177,14 @@ void BrowserWindow::closeEvent(QCloseEvent *event) {
 
 void BrowserWindow::changeEvent(QEvent *event) {
   if (event->type() == QEvent::WindowStateChange) {
-    if (this->isMinimized() && trayIcon && trayIcon->isVisible()) {
+    if (this->isMinimized() && m_trayIcon && m_trayIcon->isVisible()) {
       // Using a singleShot timer with 0ms delay ensures the
       // hide happens after the OS finishes its minimize animation.
       QTimer::singleShot(0, this, &BrowserWindow::hide);
 
       // Optional: Notify the user
       if (m_notify) {
-        trayIcon->showMessage(
+        m_trayIcon->showMessage(
             "App Minimized",
             "The application is still running in the system tray.",
             QSystemTrayIcon::Information, 2000);

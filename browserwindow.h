@@ -36,8 +36,8 @@ public:
 
 private:
   Ui::BrowserWindow *ui;
-  QSystemTrayIcon *trayIcon;
-  QMenu *trayMenu;
+  QSystemTrayIcon *m_trayIcon;
+  QMenu *m_trayMenu;
   QAction *quitAction;
   QAction *restoreAction;
   WebView *m_webView;
