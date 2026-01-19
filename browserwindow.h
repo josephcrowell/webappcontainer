@@ -33,6 +33,7 @@ public:
   DownloadManagerWidget &downloadManagerWidget() {
     return m_downloadManagerWidget;
   }
+  bool isValidImage(const QString &path);
 
 private:
   Ui::BrowserWindow *ui;
@@ -47,7 +48,6 @@ private:
 
   void loadLayout();
   void saveLayout();
-  bool isValidImage(const QString &path);
   bool isQuitting = false;
 
 protected:
