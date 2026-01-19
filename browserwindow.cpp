@@ -88,9 +88,10 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
           });
 
   // Notifications happen at the Profile level, not the Page level
-  connect(m_webView->page()->profile(),
-          &QWebEngineProfile::setNotificationPresenter, this,
-          &BrowserWindow::handleWebNotification);
+  m_profile->setNotificationPresenter(
+      [&](std::unique_ptr<QWebEngineNotification> notification) {
+        BrowserWindow::handleWebNotification(notification.get());
+      });
 
   // Quit application if the download manager window is the only remaining
   // window
