@@ -361,16 +361,43 @@ void WebView::onStateChanged(QWebEngineWebAuthUxRequest::WebAuthUxState state) {
 }
 
 //! [registerProtocolHandlerRequested]
+// TODO: save to QSettings
 void WebView::handleRegisterProtocolHandlerRequested(
     QWebEngineRegisterProtocolHandlerRequest request) {
-  auto answer = QMessageBox::question(window(), tr("Permission Request"),
-                                      tr("Allow %1 to open all %2 links?")
-                                          .arg(request.origin().host())
-                                          .arg(request.scheme()));
-  if (answer == QMessageBox::Yes)
+  QSettings settings(page()->profile()->persistentStoragePath() +
+                         "/settings.ini",
+                     QSettings::IniFormat);
+  settings.beginGroup("Permissions");
+
+  QString host = request.origin().host();
+  QString scheme = request.scheme();
+
+  QString key = QString("ProtocolHandlers/%1/%2").arg(host, scheme);
+
+  // Check if we already have a saved decision
+  if (settings.contains(key)) {
+    bool allowed = settings.value(key).toBool();
+    if (allowed) {
+      request.accept();
+    } else {
+      request.reject();
+    }
+    return;
+  }
+
+  // No saved decision found: Ask the user
+  auto answer = QMessageBox::question(
+      window(), tr("Permission Request"),
+      tr("Allow %1 to open all %2 links?").arg(host).arg(scheme));
+
+  if (answer == QMessageBox::Yes) {
+    settings.setValue(key, true);
     request.accept();
-  else
+  } else {
+    // Save 'false' so it doesn't keep pestering the user
+    settings.setValue(key, false);
     request.reject();
+  }
 }
 //! [registerProtocolHandlerRequested]
 
