@@ -10,6 +10,7 @@
 #include <QLoggingCategory>
 #include <QStandardPaths>
 #include <QString>
+#include <QStyle>
 #include <QTranslator>
 #include <QWebEngineProfile>
 #include <QWebEngineProfileBuilder>
@@ -158,6 +159,13 @@ int main(int argc, char *argv[]) {
 
   BrowserWindow *window =
       new BrowserWindow(profile, appName, iconPath, trayIconPath, notify);
+
+  if (window->isValidImage(iconPath)) {
+    application.setWindowIcon(QIcon(iconPath));
+  } else {
+    application.setWindowIcon(
+        window->style()->standardIcon(QStyle::SP_TitleBarMenuButton));
+  }
 
   // Set an initial URL
   if (startUrl.isEmpty()) {

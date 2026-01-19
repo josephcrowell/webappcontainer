@@ -15,6 +15,7 @@
 #include <QSettings>
 #include <QStyle>
 #include <QWebEngineCookieStore>
+#include <QWebEngineNotification>
 
 BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
                              const QString iconPath, const QString trayIconPath,
@@ -85,6 +86,11 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
               }
             }
           });
+
+  // Notifications happen at the Profile level, not the Page level
+  connect(m_webView->page()->profile(),
+          &QWebEngineProfile::setNotificationPresenter, this,
+          &BrowserWindow::handleWebNotification);
 
   // Quit application if the download manager window is the only remaining
   // window
@@ -173,6 +179,15 @@ void BrowserWindow::closeEvent(QCloseEvent *event) {
       event->accept();
     }
   }
+}
+
+void BrowserWindow::handleWebNotification(
+    QWebEngineNotification *notification) {
+
+  m_trayIcon->showMessage(notification->title(), notification->message(),
+                          m_trayIcon->icon());
+
+  notification->show();
 }
 
 void BrowserWindow::changeEvent(QEvent *event) {

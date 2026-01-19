@@ -50,6 +50,9 @@ private:
   void saveLayout();
   bool isQuitting = false;
 
+private slots:
+  void handleWebNotification(QWebEngineNotification *notification);
+
 protected:
   void changeEvent(QEvent *event) override;
   void closeEvent(QCloseEvent *event) override;
