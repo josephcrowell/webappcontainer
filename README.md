@@ -18,6 +18,16 @@ A lightweight, persistent web container built with **C++20** and **Qt 6.8+**. Th
 * **CMake 3.16+**
 * **C++20** compliant compiler (GCC/Clang)
 
+### Packages
+
+#### Artix
+
+The package is available in the 
+
+```bash
+sudo pacman -S webappcontainer
+```
+
 ### Building from Source
 
 ```bash
@@ -38,7 +48,7 @@ make -j$(nproc)
 Run the executable followed by your desired configuration:
 
 ```bash
-./webappcontainer [options]
+webappcontainer [options]
 ```
 
 ### Command Line Arguments
@@ -59,7 +69,7 @@ Run the executable followed by your desired configuration:
 
 To launch a dedicated Discord container:
 ```bash
-./webappcontainer --name "Discord" --url "https://discord.com/app" --profile "chat" --icon "./icons/discord.png" --app-id "com.joseph.discord"
+webappcontainer --name "Discord" --url "https://discord.com/app" --profile "chat" --icon "./icons/discord.png" --app-id "com.joseph.discord"
 ```
 
 ## 📂 Directory Structure
