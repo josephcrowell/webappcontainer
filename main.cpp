@@ -19,7 +19,13 @@ using namespace Qt::StringLiterals;
 
 int main(int argc, char *argv[]) {
   QApplication application(argc, argv);
+
+#ifdef QT_DEBUG
   QLoggingCategory::setFilterRules(u"qt.webenginecontext.debug=true"_s);
+#else
+  QLoggingCategory::setFilterRules(u"qt.webenginecontext.debug=false"_s);
+#endif
+
   application.setOrganizationName("JosephCrowell");
   application.setApplicationName("Web App Container");
   application.setApplicationVersion("1.0.0");

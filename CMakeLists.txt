@@ -59,6 +59,11 @@ target_link_libraries(webappcontainer PUBLIC
     Qt6::Svg
 )
 
+# Don't print debug messages in release mode
+target_compile_definitions(webappcontainer PRIVATE
+    $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
+)
+
 set_target_properties(webappcontainer PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
