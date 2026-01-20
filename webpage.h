@@ -28,8 +28,6 @@ private slots:
   void handleDesktopMediaRequest(const QWebEngineDesktopMediaRequest &request);
 
 protected:
-  bool acceptNavigationRequest(const QUrl &url, NavigationType type,
-                               bool isMainFrame) override;
   QWebEnginePage *createWindow(WebWindowType type) override;
 };
 

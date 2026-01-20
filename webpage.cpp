@@ -46,26 +46,6 @@ void WebPage::handleDesktopMediaRequest(
   request.selectScreen(request.screensModel()->index(0));
 }
 
-bool WebPage::acceptNavigationRequest(const QUrl &url, NavigationType type,
-                                      bool isMainFrame) {
-  // Only intercept links clicked by the user
-  if (type == QWebEnginePage::NavigationTypeLinkClicked) {
-    const QUrl currentUrl = this->url();
-
-    // Check if the host is different from the current page
-    if (currentUrl.isValid() && !PublicSuffixList::instance()->isSameDomain(
-                                    currentUrl.host(), url.host())) {
-      // Open in the default system browser
-      QDesktopServices::openUrl(url);
-      return false; // Prevent the web container from loading this URL
-    }
-  }
-
-  // Allow the container to load everything else (initial load, same domain
-  // navigation)
-  return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
-}
-
 QWebEnginePage *WebPage::createWindow(WebWindowType type) {
   // Create a ghost page to catch the URL
   QWebEnginePage *ghostPage = new QWebEnginePage(this->profile(), this);
