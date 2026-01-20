@@ -86,8 +86,9 @@ QWebEnginePage *WebPage::createWindow(WebWindowType type) {
                 WebPopupWindow *popup = new WebPopupWindow(this->profile());
                 popup->view()->setUrl(url);
                 popup->show();
-              } else if (url.host() == QString("phone.cloudtalk.io")) {
-                // Create a popup window for CloudTalk calls
+              } else if (PublicSuffixList::instance()->isSameDomain(
+                             currentUrl.host(), url.host())) {
+                // Create a popup window for same domain popups
                 WebPopupWindow *popup = new WebPopupWindow(this->profile());
                 popup->view()->setUrl(url);
                 popup->show();
