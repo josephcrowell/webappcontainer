@@ -82,6 +82,11 @@ QWebEnginePage *WebPage::createWindow(WebWindowType type) {
                 WebPopupWindow *popup = new WebPopupWindow(this->profile());
                 popup->view()->setUrl(url);
                 popup->show();
+              } else if (url.host() == QString("phone.cloudtalk.io")) {
+                // Create a popup window for CloudTalk calls
+                WebPopupWindow *popup = new WebPopupWindow(this->profile());
+                popup->view()->setUrl(url);
+                popup->show();
               } else {
                 QDesktopServices::openUrl(url);
               }
