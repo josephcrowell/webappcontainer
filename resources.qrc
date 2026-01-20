@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/data">
+        <file>public_suffix_list.dat</file>
+  </qresource>
+</RCC>

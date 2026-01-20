@@ -2,6 +2,7 @@
 // SPDX - License - Identifier : GPL-2.0-or-later
 
 #include "webpage.h"
+#include "publicsuffixlist.h"
 #include "webpopupwindow.h"
 #include "webview.h"
 
@@ -49,29 +50,31 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, NavigationType type,
                                       bool isMainFrame) {
   // Only intercept links clicked by the user
   if (type == QWebEnginePage::NavigationTypeLinkClicked) {
+    const QUrl currentUrl = this->url();
+
     // Check if the host is different from the current page
-    if (url.host() != this->url().host() && !this->url().isEmpty()) {
+    if (currentUrl.isValid() && !PublicSuffixList::instance()->isSameDomain(
+                                    currentUrl.host(), url.host())) {
       // Open in the default system browser
       QDesktopServices::openUrl(url);
       return false; // Prevent the web container from loading this URL
     }
   }
 
-  // Allow the container to load everything else (initial load, same-site
+  // Allow the container to load everything else (initial load, same domain
   // navigation)
   return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
 }
 
 QWebEnginePage *WebPage::createWindow(WebWindowType type) {
-  // Handle JavaScript window.open() or target="_blank"
-  // Instead of creating a WebPopupWindow, we look at the requested navigation.
-
   // Create a ghost page to catch the URL
   QWebEnginePage *ghostPage = new QWebEnginePage(this->profile(), this);
 
   connect(ghostPage, &QWebEnginePage::urlChanged,
           [this, ghostPage](const QUrl &url) {
+            // Skip JavaScript window.open() or target="_blank"
             if (url.isValid() && url != QUrl("about:blank")) {
+              // Special handler for opening facebook calls
               if (url.host().toLower().endsWith("facebook.com") ||
                   url.host().toLower().endsWith("messenger.com") &&
                       url.path().toLower().startsWith("/groupcall/")) {

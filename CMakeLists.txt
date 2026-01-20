@@ -24,6 +24,33 @@ find_package(Qt6 REQUIRED COMPONENTS
 
 qt_standard_project_setup()
 
+set(PSL_FILE "${CMAKE_CURRENT_SOURCE_DIR}/public_suffix_list.dat")
+set(PSL_URL "https://publicsuffix.org/list/public_suffix_list.dat")
+
+if(NOT EXISTS "${PSL_FILE}")
+    message(STATUS "Downloading Public Suffix List...")
+    file(DOWNLOAD
+        "${PSL_URL}"
+        "${PSL_FILE}"
+        SHOW_PROGRESS
+        STATUS PSL_DOWNLOAD_STATUS
+    )
+    list(GET PSL_DOWNLOAD_STATUS 0 PSL_DOWNLOAD_ERROR)
+    if(PSL_DOWNLOAD_ERROR)
+        message(WARNING "Failed to download Public Suffix List: ${PSL_DOWNLOAD_STATUS}")
+    else()
+        message(STATUS "Public Suffix List downloaded successfully")
+    endif()
+endif()
+
+add_custom_target(update-psl
+    COMMAND ${CMAKE_COMMAND} -E remove -f "${PSL_FILE}"
+    COMMAND ${CMAKE_COMMAND}
+        -DPSL_URL="${PSL_URL}"
+        -DPSL_FILE="${PSL_FILE}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/DownloadPSL.cmake"
+    COMMENT "Updating Public Suffix List..."
+)
 
 set(PROJECT_SOURCES
     main.cpp
@@ -32,6 +59,7 @@ set(PROJECT_SOURCES
     downloadmanagerwidget.cpp downloadmanagerwidget.h downloadmanagerwidget.ui
     downloadwidget.cpp downloadwidget.h downloadwidget.ui
     passworddialog.ui
+    publicsuffixlist.cpp publicsuffixlist.h
     webpage.cpp webpage.h
     webpopupwindow.cpp webpopupwindow.h
     webview.cpp webview.h

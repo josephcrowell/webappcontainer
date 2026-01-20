@@ -18,6 +18,9 @@ public:
 signals:
   void createCertificateErrorDialog(QWebEngineCertificateError error);
 
+private:
+  QString getBaseDomain(const QString &host);
+
 private slots:
   void handleCertificateError(QWebEngineCertificateError error);
   void handleSelectClientCertificate(
