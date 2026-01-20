@@ -24,7 +24,6 @@ find_package(Qt6 REQUIRED COMPONENTS
 
 qt_standard_project_setup()
 
-set(TS_FILES webappcontainer_en_US.ts)
 
 set(PROJECT_SOURCES
     main.cpp
@@ -37,20 +36,12 @@ set(PROJECT_SOURCES
     webpopupwindow.cpp webpopupwindow.h
     webview.cpp webview.h
     webauthdialog.cpp webauthdialog.h webauthdialog.ui
-    ${TS_FILES}
 )
 
 qt_add_executable(webappcontainer
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
 )
-
-qt_add_lrelease(webappcontainer
-    TS_FILES ${TS_FILES}
-    QM_FILES_OUTPUT_VARIABLE QM_FILES
-)
-
-set_source_files_properties(${QM_FILES} PROPERTIES GENERATED TRUE)
 
 target_link_libraries(webappcontainer PUBLIC
     Qt6::Core
@@ -79,11 +70,6 @@ install(TARGETS webappcontainer
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
-if(QM_FILES)
-    install(FILES ${QM_FILES}
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/webappcontainer/translations)
-endif()
 
 add_custom_command(TARGET webappcontainer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink
