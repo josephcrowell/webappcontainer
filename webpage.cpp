@@ -72,12 +72,16 @@ QWebEnginePage *WebPage::createWindow(WebWindowType type) {
 
   connect(ghostPage, &QWebEnginePage::urlChanged,
           [this, ghostPage](const QUrl &url) {
+            const QUrl currentUrl = this->url();
+
             // Skip JavaScript window.open() or target="_blank"
             if (url.isValid() && url != QUrl("about:blank")) {
               // Special handler for opening facebook calls
-              if (url.host().toLower().endsWith("facebook.com") ||
-                  url.host().toLower().endsWith("messenger.com") &&
-                      url.path().toLower().startsWith("/groupcall/")) {
+              if ((currentUrl.host().toLower().endsWith("facebook.com") ||
+                   currentUrl.host().toLower().endsWith("messenger.com")) &&
+                  (url.host().toLower().endsWith("facebook.com") ||
+                   url.host().toLower().endsWith("messenger.com")) &&
+                  url.path().toLower().startsWith("/groupcall/")) {
                 // Create a popup window for Facebook calls
                 WebPopupWindow *popup = new WebPopupWindow(this->profile());
                 popup->view()->setUrl(url);
