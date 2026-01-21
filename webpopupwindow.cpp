@@ -5,22 +5,42 @@
 #include "webpage.h"
 #include "webview.h"
 #include <QAction>
+#include <QGuiApplication>
 #include <QIcon>
 #include <QLineEdit>
+#include <QScreen>
 #include <QVBoxLayout>
 #include <QWindow>
 
 WebPopupWindow::WebPopupWindow(QWebEngineProfile *profile,
-                               const QRect &geometry)
+                               const QRect &geometry, QWidget *parent)
     : m_favAction(new QAction(this)), m_view(new WebView(profile, this)),
       m_initialGeometry(geometry) {
   setAttribute(Qt::WA_DeleteOnClose);
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
   // Set initial geometry before showing
-  if (m_initialGeometry.isValid()) {
+  if (m_initialGeometry.isValid() && m_initialGeometry.width() > 30 &&
+      m_initialGeometry.height() > 30) {
     move(m_initialGeometry.topLeft());
     resize(m_initialGeometry.size());
+  } else {
+    // Default size for popups that don't specify geometry
+    resize(400, 600);
+
+    QScreen *screen = nullptr;
+    if (parent) {
+      screen = parent->screen();
+    }
+    if (!screen) {
+      screen = QGuiApplication::primaryScreen();
+    }
+
+    // Center on screen or parent
+    if (screen) {
+      QRect screenGeometry = screen->availableGeometry();
+      move(screenGeometry.center() - rect().center());
+    }
   }
 
   QVBoxLayout *layout = new QVBoxLayout;

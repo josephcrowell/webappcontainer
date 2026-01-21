@@ -9,8 +9,8 @@
 #include <QDesktopServices>
 #include <QTimer>
 
-WebPage::WebPage(QWebEngineProfile *profile, QObject *parent)
-    : QWebEnginePage(profile, parent) {
+WebPage::WebPage(QWebEngineProfile *profile, QWidget *parent)
+    : m_parent(parent), QWebEnginePage(profile, parent) {
   connect(this, &QWebEnginePage::selectClientCertificate, this,
           &WebPage::handleSelectClientCertificate);
   connect(this, &QWebEnginePage::certificateError, this,
@@ -69,15 +69,15 @@ QWebEnginePage *WebPage::createWindow(WebWindowType type) {
                    url.host().toLower().endsWith("messenger.com")) &&
                   url.path().toLower().startsWith("/groupcall/")) {
                 // Create a popup window for Facebook calls
-                WebPopupWindow *popup =
-                    new WebPopupWindow(this->profile(), *pendingGeometry);
+                WebPopupWindow *popup = new WebPopupWindow(
+                    this->profile(), *pendingGeometry, m_parent);
                 popup->view()->setUrl(url);
                 popup->show();
               } else if (PublicSuffixList::instance()->isSameDomain(
                              currentUrl.host(), url.host())) {
                 // Create a popup window for same domain popups
-                WebPopupWindow *popup =
-                    new WebPopupWindow(this->profile(), *pendingGeometry);
+                WebPopupWindow *popup = new WebPopupWindow(
+                    this->profile(), *pendingGeometry, m_parent);
                 popup->view()->setUrl(url);
                 popup->show();
               } else {

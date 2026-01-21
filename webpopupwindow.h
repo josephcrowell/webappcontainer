@@ -19,7 +19,8 @@ class WebPopupWindow : public QWidget {
 
 public:
   explicit WebPopupWindow(QWebEngineProfile *profile,
-                          const QRect &geometry = QRect());
+                          const QRect &geometry = QRect(),
+                          QWidget *parent = nullptr);
   WebView *view() const;
 
 private slots:

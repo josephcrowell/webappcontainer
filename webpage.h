@@ -13,7 +13,7 @@ class WebPage : public QWebEnginePage {
   Q_OBJECT
 
 public:
-  explicit WebPage(QWebEngineProfile *profile, QObject *parent = nullptr);
+  explicit WebPage(QWebEngineProfile *profile, QWidget *parent = nullptr);
 
 signals:
   void createCertificateErrorDialog(QWebEngineCertificateError error);
@@ -29,6 +29,7 @@ private slots:
 
 protected:
   QWebEnginePage *createWindow(WebWindowType type) override;
+  QWidget *m_parent;
 };
 
 #endif // WEBPAGE_H
