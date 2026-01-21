@@ -39,15 +39,21 @@ private:
   Ui::BrowserWindow *ui;
   QSystemTrayIcon *m_trayIcon;
   QMenu *m_trayMenu;
+  QAction *hideOnMinimizeAction;
+  QAction *hideOnCloseAction;
   QAction *quitAction;
   QAction *restoreAction;
   WebView *m_webView;
   DownloadManagerWidget m_downloadManagerWidget;
   QWebEngineProfile *m_profile;
   bool m_notify;
+  bool m_hideOnMinimize;
+  bool m_hideOnClose;
 
   void loadLayout();
   void saveLayout();
+  void loadSettings();
+  void saveSettings();
   bool isQuitting = false;
 
 private slots:

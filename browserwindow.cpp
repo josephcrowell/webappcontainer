@@ -22,10 +22,12 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
                              const QString iconPath, const QString trayIconPath,
                              bool notify, QWidget *parent)
     : QDialog(parent), ui(new Ui::BrowserWindow), m_profile(profile),
-      m_webView(new WebView(profile, this)), m_notify(notify) {
+      m_webView(new WebView(profile, this)), m_notify(notify),
+      m_hideOnMinimize(true), m_hideOnClose(true) {
   ui->setupUi(this);
 
   loadLayout();
+  loadSettings();
 
   // Set the Window Title
   if (!appName.isEmpty()) {
@@ -42,6 +44,22 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
   restoreAction = new QAction("Restore", this);
   connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
 
+  hideOnMinimizeAction = new QAction("Minimize to Tray", this);
+  hideOnMinimizeAction->setCheckable(true);
+  hideOnMinimizeAction->setChecked(m_hideOnMinimize);
+  connect(hideOnMinimizeAction, &QAction::toggled, this, [this](bool checked) {
+    m_hideOnMinimize = checked;
+    saveSettings();
+  });
+
+  hideOnCloseAction = new QAction("Close to Tray", this);
+  hideOnCloseAction->setCheckable(true);
+  hideOnCloseAction->setChecked(m_hideOnClose);
+  connect(hideOnCloseAction, &QAction::toggled, this, [this](bool checked) {
+    m_hideOnClose = checked;
+    saveSettings();
+  });
+
   quitAction = new QAction("Exit", this);
   connect(quitAction, &QAction::triggered, this, [this]() {
     isQuitting = true; // Tell the closeEvent we actually want to quit
@@ -51,6 +69,9 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
   // Create the tray icon Context Menu
   m_trayMenu = new QMenu(this);
   m_trayMenu->addAction(restoreAction);
+  m_trayMenu->addSeparator();
+  m_trayMenu->addAction(hideOnMinimizeAction);
+  m_trayMenu->addAction(hideOnCloseAction);
   m_trayMenu->addSeparator();
   m_trayMenu->addAction(quitAction);
 
@@ -110,8 +131,7 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
         BrowserWindow::handleWebNotification(notification.get());
       });
 
-  // Quit application if the download manager window is the only remaining
-  // window
+  // Quit application if the download manager is the only remaining window
   m_downloadManagerWidget.setAttribute(Qt::WA_QuitOnClose, false);
 
   QWebEngineCookieStore *store = m_profile->cookieStore();
@@ -154,6 +174,28 @@ void BrowserWindow::saveLayout() {
   settings.sync();
 }
 
+void BrowserWindow::loadSettings() {
+  QSettings settings(m_profile->persistentStoragePath() + "/settings.ini",
+                     QSettings::IniFormat);
+
+  settings.beginGroup("Behavior");
+  m_hideOnMinimize = settings.value("hideOnMinimize", true).toBool();
+  m_hideOnClose = settings.value("hideOnClose", true).toBool();
+  settings.endGroup();
+}
+
+void BrowserWindow::saveSettings() {
+  QSettings settings(m_profile->persistentStoragePath() + "/settings.ini",
+                     QSettings::IniFormat);
+
+  settings.beginGroup("Behavior");
+  settings.setValue("hideOnMinimize", m_hideOnMinimize);
+  settings.setValue("hideOnClose", m_hideOnClose);
+  settings.endGroup();
+
+  settings.sync();
+}
+
 bool BrowserWindow::isValidImage(const QString &path) {
   if (path.isEmpty() || !QFileInfo::exists(path)) {
     return false;
@@ -173,29 +215,24 @@ bool BrowserWindow::isValidImage(const QString &path) {
 WebView *BrowserWindow::webView() const { return m_webView; }
 
 void BrowserWindow::closeEvent(QCloseEvent *event) {
-  // If we are exiting via the tray menu, just let it happen
   if (isQuitting) {
     saveLayout();
     event->accept();
-  } else {
-    // Check if the tray icon is actually functional
-    if (m_trayIcon->isVisible()) {
-      this->hide();    // Hide the window from the taskbar and desktop
-      event->ignore(); // "Ignore" means: Don't actually close/exit the app
+  } else if (m_hideOnClose) {
+    this->hide();
+    event->ignore();
 
-      // Optional notification
-      if (m_notify) {
-        m_trayIcon->showMessage(
-            "Running in background",
-            "The application is still active in the system tray.",
-            QSystemTrayIcon::Information, 2000);
-      }
-    } else {
-      // If for some reason the tray icon isn't loaded,
-      // allow the app to close so the user isn't stuck.
-      saveLayout();
-      event->accept();
+    if (m_notify) {
+      m_trayIcon->showMessage(
+          "Running in background",
+          "The application is still active in the system tray.",
+          QSystemTrayIcon::Information, 2000);
     }
+  } else {
+    isQuitting = true;
+    saveLayout();
+    event->accept();
+    qApp->quit();
   }
 }
 
@@ -210,7 +247,8 @@ void BrowserWindow::handleWebNotification(
 
 void BrowserWindow::changeEvent(QEvent *event) {
   if (event->type() == QEvent::WindowStateChange) {
-    if (this->isMinimized() && m_trayIcon && m_trayIcon->isVisible()) {
+    if (this->isMinimized() && m_hideOnMinimize && m_trayIcon &&
+        m_trayIcon->isVisible()) {
       // Using a singleShot timer with 0ms delay ensures the
       // hide happens after the OS finishes its minimize animation.
       QTimer::singleShot(0, this, &BrowserWindow::hide);
