@@ -18,15 +18,16 @@ class WebPopupWindow : public QWidget {
   Q_OBJECT
 
 public:
-  explicit WebPopupWindow(QWebEngineProfile *profile);
+  explicit WebPopupWindow(QWebEngineProfile *profile,
+                          const QRect &geometry = QRect());
   WebView *view() const;
 
 private slots:
   void handleGeometryChangeRequested(const QRect &newGeometry);
 
 private:
-  QLineEdit *m_urlLineEdit;
   QAction *m_favAction;
   WebView *m_view;
+  QRect m_initialGeometry;
 };
 #endif // WEBPOPUPWINDOW_H

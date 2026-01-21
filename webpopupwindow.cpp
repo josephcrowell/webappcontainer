@@ -10,11 +10,18 @@
 #include <QVBoxLayout>
 #include <QWindow>
 
-WebPopupWindow::WebPopupWindow(QWebEngineProfile *profile)
-    : m_urlLineEdit(new QLineEdit(this)), m_favAction(new QAction(this)),
-      m_view(new WebView(profile, this)) {
+WebPopupWindow::WebPopupWindow(QWebEngineProfile *profile,
+                               const QRect &geometry)
+    : m_favAction(new QAction(this)), m_view(new WebView(profile, this)),
+      m_initialGeometry(geometry) {
   setAttribute(Qt::WA_DeleteOnClose);
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
+  // Set initial geometry before showing
+  if (m_initialGeometry.isValid()) {
+    move(m_initialGeometry.topLeft());
+    resize(m_initialGeometry.size());
+  }
 
   QVBoxLayout *layout = new QVBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);

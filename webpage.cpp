@@ -50,8 +50,14 @@ QWebEnginePage *WebPage::createWindow(WebWindowType type) {
   // Create a ghost page to catch the URL
   QWebEnginePage *ghostPage = new QWebEnginePage(this->profile(), this);
 
+  // Store pending geometry
+  QRect *pendingGeometry = new QRect();
+
+  connect(ghostPage, &QWebEnginePage::geometryChangeRequested,
+          [pendingGeometry](const QRect &geom) { *pendingGeometry = geom; });
+
   connect(ghostPage, &QWebEnginePage::urlChanged,
-          [this, ghostPage](const QUrl &url) {
+          [this, ghostPage, pendingGeometry](const QUrl &url) {
             const QUrl currentUrl = this->url();
 
             // Skip JavaScript window.open() or target="_blank"
@@ -63,19 +69,23 @@ QWebEnginePage *WebPage::createWindow(WebWindowType type) {
                    url.host().toLower().endsWith("messenger.com")) &&
                   url.path().toLower().startsWith("/groupcall/")) {
                 // Create a popup window for Facebook calls
-                WebPopupWindow *popup = new WebPopupWindow(this->profile());
+                WebPopupWindow *popup =
+                    new WebPopupWindow(this->profile(), *pendingGeometry);
                 popup->view()->setUrl(url);
                 popup->show();
               } else if (PublicSuffixList::instance()->isSameDomain(
                              currentUrl.host(), url.host())) {
                 // Create a popup window for same domain popups
-                WebPopupWindow *popup = new WebPopupWindow(this->profile());
+                WebPopupWindow *popup =
+                    new WebPopupWindow(this->profile(), *pendingGeometry);
                 popup->view()->setUrl(url);
                 popup->show();
               } else {
                 QDesktopServices::openUrl(url);
               }
-              // We've sent the URL to the browser, now kill the ghost page
+
+              // We've sent the URL to the browser, now clean up
+              delete pendingGeometry;
               ghostPage->deleteLater();
             }
           });
