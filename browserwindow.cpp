@@ -23,7 +23,7 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
                              bool notify, QWidget *parent)
     : QDialog(parent), ui(new Ui::BrowserWindow), m_profile(profile),
       m_webView(new WebView(profile, this)), m_notify(notify),
-      m_hideOnMinimize(true), m_hideOnClose(true) {
+      m_hideOnMinimize(false), m_hideOnClose(true) {
   ui->setupUi(this);
 
   loadLayout();
@@ -179,7 +179,7 @@ void BrowserWindow::loadSettings() {
                      QSettings::IniFormat);
 
   settings.beginGroup("Behavior");
-  m_hideOnMinimize = settings.value("hideOnMinimize", true).toBool();
+  m_hideOnMinimize = settings.value("hideOnMinimize", false).toBool();
   m_hideOnClose = settings.value("hideOnClose", true).toBool();
   settings.endGroup();
 }
