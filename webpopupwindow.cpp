@@ -36,7 +36,7 @@ WebPopupWindow::WebPopupWindow(QWebEngineProfile *profile,
       screen = QGuiApplication::primaryScreen();
     }
 
-    // Center on screen or parent
+    // Center on screen on parent
     if (screen) {
       QRect screenGeometry = screen->availableGeometry();
       move(screenGeometry.center() - rect().center());
