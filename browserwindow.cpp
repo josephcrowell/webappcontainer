@@ -12,6 +12,7 @@
 #include <QIcon>
 #include <QImageReader>
 #include <QNetworkCookie>
+#include <QPainter>
 #include <QSettings>
 #include <QStyle>
 #include <QWebEngineCookieStore>
@@ -39,6 +40,18 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
   } else {
     setWindowIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
   }
+
+  // Determine the base tray icon
+  if (isValidImage(trayIconPath)) {
+    m_baseIcon = QIcon(trayIconPath);
+  } else if (isValidImage(iconPath)) {
+    m_baseIcon = QIcon(iconPath);
+  } else {
+    m_baseIcon = style()->standardIcon(QStyle::SP_TitleBarMenuButton);
+  }
+
+  // Create the notification variant
+  m_notificationIcon = createNotificationIcon(m_baseIcon);
 
   // Create Actions for the tray icon Menu
   restoreAction = new QAction("Restore", this);
@@ -84,15 +97,7 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
     m_trayIcon->setToolTip(appName);
   }
 
-  if (isValidImage(trayIconPath)) {
-    m_trayIcon->setIcon(QIcon(trayIconPath));
-  } else if (isValidImage(iconPath)) {
-    // Fallback to the window icon if no specific tray icon is provided
-    m_trayIcon->setIcon(QIcon(iconPath));
-  } else {
-    m_trayIcon->setIcon(style()->standardIcon(QStyle::SP_TitleBarMenuButton));
-  }
-
+  m_trayIcon->setIcon(m_baseIcon);
   m_trayIcon->show();
 
   // Handle double-click on tray icon
@@ -196,6 +201,49 @@ void BrowserWindow::saveSettings() {
   settings.sync();
 }
 
+QIcon BrowserWindow::createNotificationIcon(const QIcon &baseIcon) {
+  // Get the largest available size or use a default
+  QList<QSize> sizes = baseIcon.availableSizes();
+  QSize iconSize = sizes.isEmpty() ? QSize(64, 64) : sizes.last();
+
+  QPixmap pixmap = baseIcon.pixmap(iconSize);
+  QPainter painter(&pixmap);
+  painter.setRenderHint(QPainter::Antialiasing);
+
+  // Draw red dot in top-right corner
+  int dotSize = iconSize.width() / 3;
+  int x = iconSize.width() - dotSize - 1;
+  int y = 1;
+
+  // Draw white border
+  painter.setBrush(Qt::white);
+  painter.setPen(Qt::NoPen);
+  painter.drawEllipse(x - 1, y - 1, dotSize + 2, dotSize + 2);
+
+  // Draw red dot
+  painter.setBrush(QColor(255, 59, 48)); // Apple-style red
+  painter.drawEllipse(x, y, dotSize, dotSize);
+
+  painter.end();
+
+  return QIcon(pixmap);
+}
+
+void BrowserWindow::updateTrayIcon() {
+  if (m_hasNotification) {
+    m_trayIcon->setIcon(m_notificationIcon);
+  } else {
+    m_trayIcon->setIcon(m_baseIcon);
+  }
+}
+
+void BrowserWindow::clearNotificationIndicator() {
+  if (m_hasNotification) {
+    m_hasNotification = false;
+    updateTrayIcon();
+  }
+}
+
 bool BrowserWindow::isValidImage(const QString &path) {
   if (path.isEmpty() || !QFileInfo::exists(path)) {
     return false;
@@ -243,6 +291,12 @@ void BrowserWindow::handleWebNotification(
                           m_trayIcon->icon());
 
   notification->show();
+
+  // Only show indicator if window doesn't have focus
+  if (!isActiveWindow()) {
+    m_hasNotification = true;
+    updateTrayIcon();
+  }
 }
 
 void BrowserWindow::changeEvent(QEvent *event) {
@@ -261,8 +315,18 @@ void BrowserWindow::changeEvent(QEvent *event) {
             QSystemTrayIcon::Information, 2000);
       }
     }
+  } else if (event->type() == QEvent::ActivationChange) {
+    if (isActiveWindow()) {
+      clearNotificationIndicator();
+    }
   }
 
-  // Always call the base class implementation!
   QDialog::changeEvent(event);
+}
+
+bool BrowserWindow::event(QEvent *event) {
+  if (event->type() == QEvent::WindowActivate) {
+    clearNotificationIndicator();
+  }
+  return QDialog::event(event);
 }

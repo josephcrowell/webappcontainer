@@ -49,11 +49,17 @@ private:
   bool m_notify;
   bool m_hideOnMinimize;
   bool m_hideOnClose;
+  bool m_hasNotification;
+  QIcon m_baseIcon;
+  QIcon m_notificationIcon;
 
   void loadLayout();
   void saveLayout();
   void loadSettings();
   void saveSettings();
+  void updateTrayIcon();
+  QIcon createNotificationIcon(const QIcon &baseIcon);
+  void clearNotificationIndicator();
   bool isQuitting = false;
 
 private slots:
@@ -62,5 +68,6 @@ private slots:
 protected:
   void changeEvent(QEvent *event) override;
   void closeEvent(QCloseEvent *event) override;
+  bool event(QEvent *event) override;
 };
 #endif // BROWSERWINDOW_H
