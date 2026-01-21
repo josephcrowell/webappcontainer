@@ -35,8 +35,26 @@ WebPopupWindow::WebPopupWindow(QWebEngineProfile *profile)
 WebView *WebPopupWindow::view() const { return m_view; }
 
 void WebPopupWindow::handleGeometryChangeRequested(const QRect &newGeometry) {
-  if (QWindow *window = windowHandle())
+  if (!newGeometry.isValid()) {
+    show();
+    m_view->setFocus();
+    return;
+  }
+
+  // Ensure we have a window handle by calling create() or show()/hide()
+  if (!windowHandle()) {
+    // Create the native window without showing it
+    create();
+  }
+
+  if (QWindow *window = windowHandle()) {
     setGeometry(newGeometry.marginsRemoved(window->frameMargins()));
+  } else {
+    // Fallback if still no window handle
+    move(newGeometry.topLeft());
+    resize(newGeometry.size());
+  }
+
   show();
   m_view->setFocus();
 }
