@@ -16,6 +16,7 @@
 #include <QStyle>
 #include <QWebEngineCookieStore>
 #include <QWebEngineNotification>
+#include <QWindow>
 
 BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
                              const QString iconPath, const QString trayIconPath,
@@ -77,12 +78,28 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
   connect(m_trayIcon, &QSystemTrayIcon::activated,
           [this](QSystemTrayIcon::ActivationReason reason) {
             if (reason == QSystemTrayIcon::Trigger) { // Trigger = Left Click
-              if (this->isVisible() && !this->isMinimized()) {
-                this->hide();
-              } else {
+              if (this->isMinimized()) {
+                // Window is minimized - restore it
                 this->showNormal();
                 this->activateWindow();
                 this->raise();
+              } else if (!this->isVisible()) {
+                // Window is hidden - show it
+                this->showNormal();
+                this->activateWindow();
+                this->raise();
+              } else if (this->isActiveWindow()) {
+                // Window is visible and focused - hide it
+                this->hide();
+              } else {
+                // Window is visible but not focused - raise it
+                this->activateWindow();
+                this->raise();
+#ifdef Q_OS_LINUX
+                if (QWindow *win = this->windowHandle()) {
+                  win->requestActivate();
+                }
+#endif
               }
             }
           });
