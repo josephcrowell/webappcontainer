@@ -19,19 +19,12 @@ WebPopupWindow::WebPopupWindow(QWebEngineProfile *profile)
   QVBoxLayout *layout = new QVBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
-  layout->addWidget(m_urlLineEdit);
   layout->addWidget(m_view);
 
   m_view->setPage(new WebPage(profile, m_view));
   m_view->setFocus();
 
-  m_urlLineEdit->setReadOnly(true);
-  m_urlLineEdit->addAction(m_favAction, QLineEdit::LeadingPosition);
-
   connect(m_view, &WebView::titleChanged, this, &QWidget::setWindowTitle);
-  connect(m_view, &WebView::urlChanged, [this](const QUrl &url) {
-    m_urlLineEdit->setText(url.toDisplayString());
-  });
   connect(m_view, &WebView::favIconChanged, m_favAction, &QAction::setIcon);
   connect(m_view->page(), &WebPage::geometryChangeRequested, this,
           &WebPopupWindow::handleGeometryChangeRequested);
