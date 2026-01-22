@@ -171,7 +171,14 @@ int main(int argc, char *argv[]) {
   if (startUrl.isEmpty()) {
     window->webView()->setUrl(QUrl("https://www.google.com"));
   } else {
-    window->webView()->setUrl(QUrl(startUrl));
+    QUrl url(startUrl);
+
+    // If no scheme is provided, default to https
+    if (url.scheme().isEmpty()) {
+      url = QUrl("https://" + startUrl);
+    }
+
+    window->webView()->setUrl(url);
   }
 
   if (startMinimized) {
