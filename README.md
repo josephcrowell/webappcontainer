@@ -20,6 +20,45 @@ A lightweight, persistent web container built with **C++20** and **Qt 6.8+**. Th
 
 ### Packages
 
+#### Arch/Manjaro/Endeavour OS/Garuda/CachyOS
+
+##### The app is available on the XLibre Arch repository
+
+```bash
+# Add the GPG Key
+curl -sS https://x11libre.net/repo/arch_based/x86_64/0x73580DE2EDDFA6D6.gpg | sudo pacman-key --add -
+```
+
+```bash
+# Locally Sign the Key
+sudo pacman-key --lsign-key 73580DE2EDDFA6D6
+```
+
+Edit your pacman configuration file (usually found at /etc/pacman.conf) using a text editor like nano or vim
+
+```bash
+# Configure the repository
+sudo nano /etc/pacman.conf
+```
+
+Add the following at the end of the file:
+
+```ini
+[xlibre]
+Server = https://x11libre.net/repo/arch_based/$arch/
+```
+
+```bash
+# Update your package database and install the webappcontainer package
+sudo pacman -Sy webappcontainer
+```
+
+##### or it is available on the AUR so you can use your preferred AUR installer
+
+```bash
+yay -S webappcontainer
+```
+
 #### Artix
 
 The package is available in the galaxy repository:
