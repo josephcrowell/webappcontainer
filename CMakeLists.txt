@@ -52,6 +52,80 @@ add_custom_target(update-psl
     COMMENT "Updating Public Suffix List..."
 )
 
+# Widevine CDM for DRM support
+option(ENABLE_WIDEVINE "Download and enable Widevine CDM for DRM support" ON)
+set(WIDEVINE_VERSION "4.10.2934.0" CACHE STRING "Widevine CDM version to download")
+set(WIDEVINE_DIR "${CMAKE_BINARY_DIR}/widevine" CACHE PATH "Widevine CDM installation directory")
+
+if(ENABLE_WIDEVINE)
+    # Determine library name based on platform
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(WIDEVINE_LIB_NAME "libwidevinecdm.so")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        set(WIDEVINE_LIB_NAME "libwidevinecdm.dylib")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        set(WIDEVINE_LIB_NAME "widevinecdm.dll")
+    endif()
+
+    set(WIDEVINE_LIB "${WIDEVINE_DIR}/${WIDEVINE_LIB_NAME}")
+
+    if(NOT EXISTS "${WIDEVINE_LIB}")
+        message(STATUS "Downloading Widevine CDM ${WIDEVINE_VERSION}...")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND}
+                -DWIDEVINE_VERSION=${WIDEVINE_VERSION}
+                -DWIDEVINE_DIR=${WIDEVINE_DIR}
+                -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+                -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}
+                -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/DownloadWidevine.cmake"
+            RESULT_VARIABLE WIDEVINE_DOWNLOAD_RESULT
+        )
+        if(WIDEVINE_DOWNLOAD_RESULT)
+            message(WARNING "Failed to download Widevine CDM. DRM content will not be available.")
+            set(ENABLE_WIDEVINE OFF)
+        endif()
+    else()
+        message(STATUS "Widevine CDM already present at ${WIDEVINE_LIB}")
+    endif()
+
+    if(ENABLE_WIDEVINE)
+        # Install Widevine CDM library to webappcontainer-specific lib directory
+        install(FILES "${WIDEVINE_LIB}"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/webappcontainer"
+            PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+        )
+
+        # Install Widevine metadata files if they exist
+        if(EXISTS "${WIDEVINE_DIR}/manifest.json")
+            install(FILES "${WIDEVINE_DIR}/manifest.json"
+                DESTINATION "${CMAKE_INSTALL_LIBDIR}/webappcontainer"
+                PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+            )
+        endif()
+        if(EXISTS "${WIDEVINE_DIR}/LICENSE")
+            install(FILES "${WIDEVINE_DIR}/LICENSE"
+                DESTINATION "${CMAKE_INSTALL_LIBDIR}/webappcontainer"
+                PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+            )
+        endif()
+
+        # Tell the application to look for Widevine relative to the executable
+        add_compile_definitions(WIDEVINE_CDM_ENABLED)
+    endif()
+endif()
+
+# Custom target to update/re-download Widevine CDM
+add_custom_target(update-widevine
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${WIDEVINE_DIR}"
+    COMMAND ${CMAKE_COMMAND}
+        -DWIDEVINE_VERSION=${WIDEVINE_VERSION}
+        -DWIDEVINE_DIR=${WIDEVINE_DIR}
+        -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+        -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/DownloadWidevine.cmake"
+    COMMENT "Updating Widevine CDM..."
+)
+
 set(PROJECT_SOURCES
     main.cpp
     browserwindow.cpp browserwindow.h browserwindow.ui
@@ -107,3 +181,36 @@ add_custom_command(TARGET webappcontainer POST_BUILD
 )
 
 qt_finalize_executable(webappcontainer)
+
+# Testing
+option(BUILD_TESTING "Build the testing tree" ON)
+if(BUILD_TESTING)
+    enable_testing()
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+
+    # Widevine/DRM test
+    qt_add_executable(tst_widevine
+        tests/tst_widevine.cpp
+    )
+    target_link_libraries(tst_widevine PRIVATE
+        Qt6::Core
+        Qt6::Test
+        Qt6::WebEngineWidgets
+    )
+
+    # Pass Widevine path to test if available
+    if(ENABLE_WIDEVINE AND EXISTS "${WIDEVINE_LIB}")
+        target_compile_definitions(tst_widevine PRIVATE
+            WIDEVINE_CDM_PATH="${WIDEVINE_LIB}"
+        )
+    endif()
+
+    add_test(NAME tst_widevine COMMAND tst_widevine)
+
+    # Set environment for test to find Widevine
+    if(ENABLE_WIDEVINE AND EXISTS "${WIDEVINE_LIB}")
+        set_tests_properties(tst_widevine PROPERTIES
+            ENVIRONMENT "QTWEBENGINE_CHROMIUM_FLAGS=--widevine-cdm-path=${WIDEVINE_LIB}"
+        )
+    endif()
+endif()

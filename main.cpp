@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QFileInfo>
 #include <QLocale>
 #include <QLoggingCategory>
 #include <QStandardPaths>
@@ -18,8 +19,90 @@
 
 using namespace Qt::StringLiterals;
 
+// Find Widevine CDM library at runtime
+// Searches in order: environment override, lib folder next to executable, system lib
+// Note: Can't use QCoreApplication::applicationDirPath() before QApplication exists,
+// so we need to parse argv[0] manually
+static QString findWidevineCdm(const char *argv0) {
+  // Get executable directory from argv[0]
+  QString exePath = QString::fromLocal8Bit(argv0);
+  QFileInfo exeInfo(exePath);
+  QString appDir = exeInfo.absolutePath();
+
+  QStringList searchPaths = {
+      // Development build: build/widevine/libwidevinecdm.so
+      appDir + "/widevine/libwidevinecdm.so",
+      // Installed location: <prefix>/lib/webappcontainer/libwidevinecdm.so
+      appDir + "/../lib/webappcontainer/libwidevinecdm.so",
+      // Flatpak/AppImage style: libs next to binary
+      appDir + "/lib/libwidevinecdm.so",
+      appDir + "/libwidevinecdm.so",
+      // System-wide fallback
+      "/usr/lib/webappcontainer/libwidevinecdm.so",
+      "/usr/local/lib/webappcontainer/libwidevinecdm.so",
+  };
+
+  for (const QString &path : searchPaths) {
+    QFileInfo fi(path);
+    if (fi.exists() && fi.isFile()) {
+      return fi.canonicalFilePath();
+    }
+  }
+
+  return QString();
+}
+
+// Setup Widevine CDM for DRM playback
+// MUST be called BEFORE QApplication is created!
+static void setupWidevineCdm(const char *argv0) {
+#ifdef WIDEVINE_CDM_ENABLED
+  // Check if user already specified a Widevine path via environment
+  QByteArray existingFlags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
+  if (existingFlags.contains("widevine-cdm-path")) {
+    // Already configured, don't override
+    return;
+  }
+
+  QString widevinePath = findWidevineCdm(argv0);
+  if (widevinePath.isEmpty()) {
+    // Will warn later after logging is set up
+    return;
+  }
+
+  // Get the directory containing the Widevine CDM
+  // Chromium expects the directory, not the .so file directly
+  // It will look for _platform_specific/linux_x64/libwidevinecdm.so
+  QFileInfo cdmFile(widevinePath);
+  QString widevineDir = cdmFile.absolutePath();
+
+  // Set Chromium flags for Widevine
+  // Qt WebEngine uses --widevine-path, NOT --widevine-cdm-path
+  QByteArray flags = existingFlags;
+  if (!flags.isEmpty()) {
+    flags += " ";
+  }
+  flags += "--widevine-path=" + widevinePath.toUtf8();
+  qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+#endif
+}
+
 int main(int argc, char *argv[]) {
+  // Setup Widevine BEFORE QApplication (Qt WebEngine initializes with QApplication)
+  setupWidevineCdm(argv[0]);
+
   QApplication application(argc, argv);
+
+  // Log Widevine status after application is created
+#ifdef WIDEVINE_CDM_ENABLED
+  QByteArray flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
+  if (flags.contains("widevine-cdm-path")) {
+    qDebug() << "Widevine CDM enabled via:" << flags;
+  } else {
+    qWarning() << "Widevine CDM not found. DRM content (Netflix, Spotify, etc.) may not play.";
+  }
+#else
+  qDebug() << "Widevine CDM support not compiled in (ENABLE_WIDEVINE=OFF)";
+#endif
 
 #ifdef QT_DEBUG
   QLoggingCategory::setFilterRules(u"qt.webenginecontext.debug=true"_s);

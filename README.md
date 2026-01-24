@@ -22,7 +22,7 @@ A lightweight, persistent web container built with **C++20** and **Qt 6.8+**. Th
 
 #### Artix
 
-The package is available in the 
+The package is available in the galaxy repository:
 
 ```bash
 sudo pacman -S webappcontainer
@@ -43,6 +43,58 @@ cmake ..
 make -j$(nproc)
 ```
 
+### DRM/Widevine Support
+
+#### Automatic Download (Default)
+
+The build system automatically downloads Widevine CDM from Google's Chrome component repository. No Chrome installation needed!
+
+```bash
+cmake ..  # Widevine is enabled by default
+make -j$(nproc)
+```
+
+#### Disable Widevine
+
+To build without Widevine support:
+
+```bash
+cmake -DENABLE_WIDEVINE=OFF ..
+```
+
+#### Update Widevine
+
+To update to the latest Widevine version:
+
+```bash
+# From the build directory
+make update-widevine
+```
+
+#### Notes
+
+* Widevine is downloaded as a Chrome component (CRX3 format) without requiring Chrome/Chromium installation
+* Only Linux x86_64 is currently supported for automatic download
+* The Widevine CDM enables DRM-protected content playback (Netflix, Spotify, etc.)
+
+#### DRM Status
+
+**Status**: ✅ **Widevine DRM is WORKING!**
+
+The application automatically downloads and configures Widevine CDM for DRM-protected content playback (Netflix, Spotify, etc.).
+
+**Verification:**
+```bash
+# Check that Widevine is enabled
+./webappcontainer --url "https://open.spotify.com" 2>&1 | grep Widevine
+# Output: "Widevine CDM enabled via: ...--widevine-path=..."
+```
+
+**Requirements:**
+
+* Qt WebEngine must be built with proprietary codecs (default on most distributions)
+* Widevine CDM 4.10.2934.0 (automatically downloaded during build)
+
 ## 🛠 Usage
 
 Run the executable followed by your desired configuration:
@@ -55,7 +107,7 @@ webappcontainer [options]
 
 | Option | Description |
 | :--- | :--- |
-| `-u, --url <url>` | The initial URL to open (e.g., `https://web.whatsapp.com`). |
+| `-u, --url <url>` | The initial URL to open (e.g., `https://web.whatsapp.com or web.whatsapp.com`). |
 | `-a, --app-id <id>` | Unique ID (e.g., `com.user.app`) for Linux taskbar grouping. |
 | `-p, --profile <name>`| Name of the profile folder (stores cookies and settings). |
 | `-n, --name <name>` | The display name for the window and tray tooltip. |
