@@ -165,7 +165,7 @@ webappcontainer --name "Discord" --url "https://discord.com/app" --profile "chat
 
 ## 📂 Directory Structure
 
-Files are stored in your user's local data directory (e.g., `~/.local/share/JosephCrowell/Web App Container/`):
+Files are stored in your user's local data directory (e.g., `~/.local/share/JosephCrowell/<app_name or "Web App Container">/`):
 * `QtWebEngine/<profile_name>/settings.ini`: Stores window geometry and site permissions.
 * `QtWebEngine/<profile_name>/Network/`: Stores persistent cookies.
 * `QtWebEngine/<profile_name>/cache/`: Stores temporary web data.
