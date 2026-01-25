@@ -6,6 +6,7 @@ A lightweight, persistent web container built with **C++20** and **Qt 6.8+**. Th
 
 * **Isolated Profiles:** Each instance can have its own cookies, storage, and cache using the `--profile` flag.
 * **Persistent Permissions:** Camera and Microphone grants are remembered per-domain in a local `settings.ini`.
+* **Push Notifications:** Full support for web push notifications with click actions, custom icons, and notification badges.
 * **Custom Branding:** Set the window title, taskbar icon, and tray icon dynamically via command-line arguments.
 * **System Tray Integration:** Start minimized or hide the app to the tray to keep your workspace clean.
 * **Linux Optimized:** Supports `app-id` (Wayland) and `WM_CLASS` (X11) for correct taskbar grouping.
@@ -123,6 +124,7 @@ make update-widevine
 The application automatically downloads and configures Widevine CDM for DRM-protected content playback (Netflix, Spotify, etc.).
 
 **Verification:**
+
 ```bash
 # Check that Widevine is enabled
 ./webappcontainer --url "https://open.spotify.com" 2>&1 | grep Widevine
@@ -159,6 +161,7 @@ webappcontainer [options]
 ### Example
 
 To launch a dedicated Discord container:
+
 ```bash
 webappcontainer --name "Discord" --url "https://discord.com/app" --profile "chat" --icon "./icons/discord.png" --app-id "com.joseph.discord"
 ```
@@ -166,13 +169,16 @@ webappcontainer --name "Discord" --url "https://discord.com/app" --profile "chat
 ## 📂 Directory Structure
 
 Files are stored in your user's local data directory (e.g., `~/.local/share/JosephCrowell/<app_name or "Web App Container">/`):
+
 * `QtWebEngine/<profile_name>/settings.ini`: Stores window geometry and site permissions.
 * `QtWebEngine/<profile_name>/Network/`: Stores persistent cookies.
 * `QtWebEngine/<profile_name>/cache/`: Stores temporary web data.
 
-## ⚖️ License
+## 🔔 Push Notifications & Web Push API
 
-This project is licensed under the **GPL-2.0-or-later**.
+The application provides full support for both basic notifications and the **Web Push API** with service workers
+
+## This project is licensed under the **GPL-2.0-or-later**
 
 ```text
 SPDX-License-Identifier: GPL-2.0-or-later

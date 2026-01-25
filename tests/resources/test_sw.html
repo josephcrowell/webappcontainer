@@ -1,0 +1,36 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head><title>Service Worker HTTPS Test</title></head>
+    <body>
+      <div id="result">Testing...</div>
+      <div id="error"></div>
+      <div id="scope"></div>
+      <script>
+        var result = document.getElementById('result');
+        var error = document.getElementById('error');
+        var scope = document.getElementById('scope');
+
+        // Wait for page to be fully loaded before registering service worker
+        window.addEventListener('load', function() {
+          if (!('serviceWorker' in navigator)) {
+            result.textContent = 'SW_NOT_AVAILABLE';
+          } else {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+              .then(registration => {
+                scope.textContent = 'Scope: ' + registration.scope;
+                return navigator.serviceWorker.ready;
+              })
+              .then(() => {
+                result.textContent = 'SW_REGISTERED_ACTIVE';
+              })
+              .catch(err => {
+                error.textContent = err.toString();
+                result.textContent = 'SW_REGISTRATION_FAILED';
+              });
+          }
+        });
+      </script>
+    </body>
+    </html>
+  

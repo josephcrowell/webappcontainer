@@ -130,6 +130,10 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
             }
           });
 
+  // Handle notification clicks from system tray
+  connect(m_trayIcon, &QSystemTrayIcon::messageClicked, this,
+          &BrowserWindow::onNotificationClicked);
+
   // Notifications happen at the Profile level, not the Page level
   m_profile->setNotificationPresenter(
       [&](std::unique_ptr<QWebEngineNotification> notification) {
@@ -287,16 +291,73 @@ void BrowserWindow::closeEvent(QCloseEvent *event) {
 void BrowserWindow::handleWebNotification(
     QWebEngineNotification *notification) {
 
-  m_trayIcon->showMessage(notification->title(), notification->message(),
-                          m_trayIcon->icon());
+  // Store reference to current notification for click handling
+  m_currentNotification = notification;
 
+  // Connect to notification signals for proper lifecycle management
+  connect(notification, &QWebEngineNotification::closed, this, [this]() {
+    m_currentNotification = nullptr;
+  });
+
+  // Show system tray notification with icon if available
+  QIcon notificationIcon;
+  if (!notification->icon().isNull()) {
+    notificationIcon = QIcon(QPixmap::fromImage(notification->icon()));
+  } else {
+    notificationIcon = m_trayIcon->icon();
+  }
+
+  m_trayIcon->showMessage(notification->title(), notification->message(),
+                          notificationIcon);
+
+  // Show the native notification through Qt WebEngine
   notification->show();
+
+  // Log notification for debugging
+  qDebug() << "Push Notification Received:";
+  qDebug() << "  Title:" << notification->title();
+  qDebug() << "  Message:" << notification->message();
+  qDebug() << "  Origin:" << notification->origin().toString();
+  qDebug() << "  Tag:" << notification->tag();
+  qDebug() << "  Language:" << notification->language();
+  qDebug() << "  Direction:" << notification->direction();
 
   // Only show indicator if window doesn't have focus
   if (!isActiveWindow()) {
     m_hasNotification = true;
     updateTrayIcon();
   }
+}
+
+void BrowserWindow::onNotificationClicked() {
+  // Handle notification click - restore window and trigger notification click
+  if (m_currentNotification) {
+    // Tell the web page that the notification was clicked
+    m_currentNotification->click();
+
+    // Close the notification
+    m_currentNotification->close();
+    m_currentNotification = nullptr;
+  }
+
+  // Restore and focus the window
+  if (isMinimized()) {
+    showNormal();
+  } else if (!isVisible()) {
+    show();
+  }
+
+  activateWindow();
+  raise();
+
+#ifdef Q_OS_LINUX
+  if (QWindow *win = windowHandle()) {
+    win->requestActivate();
+  }
+#endif
+
+  // Clear the notification indicator
+  clearNotificationIndicator();
 }
 
 void BrowserWindow::changeEvent(QEvent *event) {

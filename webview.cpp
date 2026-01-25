@@ -284,8 +284,22 @@ void WebView::handlePermissionRequested(QWebEnginePermission permission) {
   int type = static_cast<int>(permission.permissionType());
   QString key = QString("grants/%1/%2").arg(host).arg(type);
 
+  // Log permission request for debugging
+  qDebug() << "Permission requested:";
+  qDebug() << "  Origin:" << permission.origin().toString();
+  qDebug() << "  Host:" << permission.origin().host();
+  qDebug() << "  Type:" << permission.permissionType();
+  qDebug() << "  Type ID:" << type;
+
+  // Special handling for Notifications (includes Web Push API)
+  if (permission.permissionType() ==
+      QWebEnginePermission::PermissionType::Notifications) {
+    qDebug() << "  Notification/Push permission requested (Web Push API)";
+  }
+
   // Check if we already have a saved "Yes"
   if (settings.value(key).toBool()) {
+    qDebug() << "  Permission auto-granted (previously allowed)";
     permission.grant();
     return;
   }
@@ -296,10 +310,12 @@ void WebView::handlePermissionRequested(QWebEnginePermission permission) {
                          .arg(permission.origin().host());
   if (!question.isEmpty() &&
       QMessageBox::question(window(), title, question) == QMessageBox::Yes) {
+    qDebug() << "  Permission granted by user";
     settings.setValue(key, true);
     settings.sync();
     permission.grant();
   } else {
+    qDebug() << "  Permission denied by user";
     permission.deny();
   }
 }

@@ -213,4 +213,16 @@ if(BUILD_TESTING)
             ENVIRONMENT "QTWEBENGINE_CHROMIUM_FLAGS=--widevine-cdm-path=${WIDEVINE_LIB}"
         )
     endif()
+
+    # Service Worker test
+    qt_add_executable(tst_serviceworker
+        tests/tst_serviceworker.cpp
+    )
+    target_link_libraries(tst_serviceworker PRIVATE
+        Qt6::Core
+        Qt6::Test
+        Qt6::WebEngineWidgets
+    )
+
+    add_test(NAME tst_serviceworker COMMAND tst_serviceworker)
 endif()

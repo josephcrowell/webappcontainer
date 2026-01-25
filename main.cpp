@@ -90,11 +90,19 @@ int main(int argc, char *argv[]) {
   // Setup Widevine BEFORE QApplication (Qt WebEngine initializes with QApplication)
   setupWidevineCdm(argv[0]);
 
+  // Enable service workers on localhost (allows self-signed certs for testing)
+  QByteArray flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
+  if (!flags.contains("allow-insecure-localhost")) {
+    if (!flags.isEmpty()) flags += " ";
+    flags += "--allow-insecure-localhost";
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+  }
+
   QApplication application(argc, argv);
 
   // Log Widevine status after application is created
 #ifdef WIDEVINE_CDM_ENABLED
-  QByteArray flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
+  flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
   if (flags.contains("widevine-cdm-path")) {
     qDebug() << "Widevine CDM enabled via:" << flags;
   } else {
@@ -218,7 +226,12 @@ int main(int argc, char *argv[]) {
   profile->setPersistentCookiesPolicy(
       QWebEngineProfile::AllowPersistentCookies);
 
+  // Enable Web Push API for service worker push notifications
+  profile->setPushServiceEnabled(true);
+
   // Set remaining profile settings
+  profile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+  profile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
   profile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
   profile->settings()->setAttribute(QWebEngineSettings::DnsPrefetchEnabled,
                                     true);

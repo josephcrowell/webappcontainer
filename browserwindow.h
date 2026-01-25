@@ -52,6 +52,7 @@ private:
   bool m_hasNotification;
   QIcon m_baseIcon;
   QIcon m_notificationIcon;
+  QWebEngineNotification *m_currentNotification = nullptr;
 
   void loadLayout();
   void saveLayout();
@@ -64,6 +65,7 @@ private:
 
 private slots:
   void handleWebNotification(QWebEngineNotification *notification);
+  void onNotificationClicked();
 
 protected:
   void changeEvent(QEvent *event) override;
