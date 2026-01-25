@@ -12,6 +12,11 @@ project(webappcontainer
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+file(CREATE_LINK
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json"
+    SYMBOLIC
+)
 
 find_package(Qt6 REQUIRED COMPONENTS
     Core
@@ -171,13 +176,6 @@ install(TARGETS webappcontainer
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-add_custom_command(TARGET webappcontainer POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${CMAKE_BINARY_DIR}/compile_commands.json"
-    "${CMAKE_SOURCE_DIR}/compile_commands.json"
-    COMMENT "Updating compile_commands.json symlink in source root"
 )
 
 qt_finalize_executable(webappcontainer)
