@@ -67,7 +67,8 @@ QWebEnginePage *WebPage::createWindow(WebWindowType type) {
                    currentUrl.host().toLower().endsWith("messenger.com")) &&
                   (url.host().toLower().endsWith("facebook.com") ||
                    url.host().toLower().endsWith("messenger.com")) &&
-                  url.path().toLower().startsWith("/groupcall/")) {
+                  (url.path().toLower().startsWith("/groupcall/") ||
+                   url.path().toLower().startsWith("/settings/"))) {
                 // Create a popup window for Facebook calls
                 WebPopupWindow *popup = new WebPopupWindow(
                     this->profile(), *pendingGeometry, m_parent);
