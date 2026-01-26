@@ -29,6 +29,7 @@ public:
                 const QString iconPath = "", const QString trayIconPath = "",
                 bool notify = true, QWidget *parent = nullptr);
   ~BrowserWindow();
+
   WebView *webView() const;
   DownloadManagerWidget &downloadManagerWidget() {
     return m_downloadManagerWidget;

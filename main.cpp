@@ -20,9 +20,9 @@
 using namespace Qt::StringLiterals;
 
 // Find Widevine CDM library at runtime
-// Searches in order: environment override, lib folder next to executable, system lib
-// Note: Can't use QCoreApplication::applicationDirPath() before QApplication exists,
-// so we need to parse argv[0] manually
+// Searches in order: environment override, lib folder next to executable,
+// system lib Note: Can't use QCoreApplication::applicationDirPath() before
+// QApplication exists, so we need to parse argv[0] manually
 static QString findWidevineCdm(const char *argv0) {
   // Get executable directory from argv[0]
   QString exePath = QString::fromLocal8Bit(argv0);
@@ -87,13 +87,15 @@ static void setupWidevineCdm(const char *argv0) {
 }
 
 int main(int argc, char *argv[]) {
-  // Setup Widevine BEFORE QApplication (Qt WebEngine initializes with QApplication)
+  // Setup Widevine BEFORE QApplication (Qt WebEngine initializes with
+  // QApplication)
   setupWidevineCdm(argv[0]);
 
   // Enable service workers on localhost (allows self-signed certs for testing)
   QByteArray flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
   if (!flags.contains("allow-insecure-localhost")) {
-    if (!flags.isEmpty()) flags += " ";
+    if (!flags.isEmpty())
+      flags += " ";
     flags += "--allow-insecure-localhost";
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
   }
@@ -106,7 +108,8 @@ int main(int argc, char *argv[]) {
   if (flags.contains("widevine-cdm-path")) {
     qDebug() << "Widevine CDM enabled via:" << flags;
   } else {
-    qWarning() << "Widevine CDM not found. DRM content (Netflix, Spotify, etc.) may not play.";
+    qWarning() << "Widevine CDM not found. DRM content (Netflix, Spotify, "
+                  "etc.) may not play.";
   }
 #else
   qDebug() << "Widevine CDM support not compiled in (ENABLE_WIDEVINE=OFF)";
@@ -230,8 +233,10 @@ int main(int argc, char *argv[]) {
   profile->setPushServiceEnabled(true);
 
   // Set remaining profile settings
-  profile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
-  profile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled, true);
+  profile->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled,
+                                    true);
+  profile->settings()->setAttribute(QWebEngineSettings::LocalStorageEnabled,
+                                    true);
   profile->settings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
   profile->settings()->setAttribute(QWebEngineSettings::DnsPrefetchEnabled,
                                     true);

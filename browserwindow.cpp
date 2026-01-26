@@ -293,9 +293,8 @@ void BrowserWindow::handleWebNotification(
   m_currentNotification = notification;
 
   // Connect to notification signals for proper lifecycle management
-  connect(notification, &QWebEngineNotification::closed, this, [this]() {
-    m_currentNotification = nullptr;
-  });
+  connect(notification, &QWebEngineNotification::closed, this,
+          [this]() { m_currentNotification = nullptr; });
 
   // Show system tray notification with icon if available
   QIcon notificationIcon;
