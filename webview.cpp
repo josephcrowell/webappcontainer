@@ -120,6 +120,7 @@ void WebView::setPage(WebPage *page) {
     disconnect(oldPage, &QWebEnginePage::fileSystemAccessRequested, this,
                &WebView::handleFileSystemAccessRequested);
 #endif
+    oldPage->deleteLater();
   }
   createWebActionTrigger(page, QWebEnginePage::Forward);
   createWebActionTrigger(page, QWebEnginePage::Back);

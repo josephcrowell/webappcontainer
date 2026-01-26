@@ -156,7 +156,30 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
   ui->webViewLayout->addWidget(m_webView);
 }
 
-BrowserWindow::~BrowserWindow() { delete ui; }
+BrowserWindow::~BrowserWindow() {
+  if (m_trayIcon) {
+    m_trayIcon->hide();
+    disconnect(m_trayIcon, nullptr, this, nullptr);
+  }
+
+  if (m_profile) {
+    m_profile->setNotificationPresenter(nullptr);
+    disconnect(m_profile, nullptr, this, nullptr);
+    disconnect(m_profile, nullptr, &m_downloadManagerWidget, nullptr);
+  }
+
+  m_currentNotification = nullptr;
+
+  if (m_webView) {
+    delete m_webView;
+    m_webView = nullptr;
+  }
+
+  QCoreApplication::processEvents();
+  QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+
+  delete ui;
+}
 
 void BrowserWindow::loadLayout() {
   QSettings settings(m_profile->persistentStoragePath() + "/settings.ini",

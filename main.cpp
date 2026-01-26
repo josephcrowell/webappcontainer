@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
   QDir().mkpath(profilePath);
 
   // Create the profile and set paths
-  QWebEngineProfile *profile = new QWebEngineProfile(name, &application);
+  QWebEngineProfile *profile = new QWebEngineProfile(name);
   profile->setPersistentStoragePath(profilePath);
   profile->setCachePath(profilePath + QDir::separator() + "cache");
 
@@ -258,36 +258,44 @@ int main(int argc, char *argv[]) {
              << profile->persistentStoragePath();
   }
 
-  BrowserWindow *window =
-      new BrowserWindow(profile, appName, iconPath, trayIconPath, notify);
+  int result = 0;
+  {
+    BrowserWindow *window =
+        new BrowserWindow(profile, appName, iconPath, trayIconPath, notify);
 
-  if (window->isValidImage(iconPath)) {
-    application.setWindowIcon(QIcon(iconPath));
-  } else {
-    application.setWindowIcon(
-        window->style()->standardIcon(QStyle::SP_TitleBarMenuButton));
-  }
-
-  // Set an initial URL
-  if (startUrl.isEmpty()) {
-    window->webView()->setUrl(QUrl("https://www.google.com"));
-  } else {
-    QUrl url(startUrl);
-
-    // If no scheme is provided, default to https
-    if (url.scheme().isEmpty()) {
-      url = QUrl("https://" + startUrl);
+    if (window->isValidImage(iconPath)) {
+      application.setWindowIcon(QIcon(iconPath));
+    } else {
+      application.setWindowIcon(
+          window->style()->standardIcon(QStyle::SP_TitleBarMenuButton));
     }
 
-    window->webView()->setUrl(url);
+    // Set an initial URL
+    if (startUrl.isEmpty()) {
+      window->webView()->setUrl(QUrl("https://www.google.com"));
+    } else {
+      QUrl url(startUrl);
+
+      // If no scheme is provided, default to https
+      if (url.scheme().isEmpty()) {
+        url = QUrl("https://" + startUrl);
+      }
+
+      window->webView()->setUrl(url);
+    }
+
+    if (startMinimized) {
+      window->show();
+      window->hide();
+    } else {
+      window->show();
+    }
+    result = application.exec();
+
+    delete window;
   }
 
-  if (startMinimized) {
-    window->show();
-    window->hide();
-  } else {
-    window->show();
-  }
+  delete profile;
 
-  return application.exec();
+  return result;
 }
