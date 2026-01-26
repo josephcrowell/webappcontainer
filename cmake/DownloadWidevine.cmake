@@ -45,7 +45,13 @@ message(STATUS "Extracting Google Chrome deb package...")
 
 # Extract deb package using dpkg
 execute_process(
-    COMMAND dpkg -x "${CHROME_DEB}" "${WIDEVINE_DIR}"
+    COMMAND ar -x "${CHROME_DEB}"
+    RESULT_VARIABLE DPKG_RESULT
+    ERROR_VARIABLE DPKG_ERROR
+)
+
+execute_process(
+    COMMAND tar -xvf data.tar.xz -C "${WIDEVINE_DIR}"
     RESULT_VARIABLE DPKG_RESULT
     ERROR_VARIABLE DPKG_ERROR
 )
