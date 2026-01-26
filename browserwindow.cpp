@@ -44,10 +44,8 @@ BrowserWindow::BrowserWindow(QWebEngineProfile *profile, const QString appName,
   // Determine the base tray icon
   if (isValidImage(trayIconPath)) {
     m_baseIcon = QIcon(trayIconPath);
-  } else if (isValidImage(iconPath)) {
-    m_baseIcon = QIcon(iconPath);
   } else {
-    m_baseIcon = style()->standardIcon(QStyle::SP_TitleBarMenuButton);
+    m_baseIcon = this->windowIcon();
   }
 
   // Create the notification variant
