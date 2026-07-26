@@ -87,7 +87,7 @@ make -j$(nproc)
 
 #### Automatic Download (Default)
 
-The build system automatically downloads Widevine CDM from Google's Chrome component repository. No Chrome installation needed!
+The build system automatically downloads Widevine CDM from Google's Chrome component repository or finds the one installed by your distribution. No Chrome installation needed!
 
 ```bash
 cmake ..  # Widevine is enabled by default

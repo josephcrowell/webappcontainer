@@ -37,9 +37,12 @@ static QString findWidevineCdm(const char *argv0) {
       // Flatpak/AppImage style: libs next to binary
       appDir + "/lib/libwidevinecdm.so",
       appDir + "/libwidevinecdm.so",
-      // System-wide fallback
+      // System-wide fallbacks
       "/usr/lib/webappcontainer/libwidevinecdm.so",
       "/usr/local/lib/webappcontainer/libwidevinecdm.so",
+      "/usr/lib64/chromium-browser/WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so",
+      "/usr/lib/chromium-browser/WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so",
+      "/opt/google/chrome/WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so",
   };
 
   for (const QString &path : searchPaths) {
@@ -58,7 +61,7 @@ static void setupWidevineCdm(const char *argv0) {
 #ifdef WIDEVINE_CDM_ENABLED
   // Check if user already specified a Widevine path via environment
   QByteArray existingFlags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
-  if (existingFlags.contains("widevine-cdm-path")) {
+  if (existingFlags.contains("widevine-path")) {
     // Already configured, don't override
     return;
   }
@@ -76,7 +79,7 @@ static void setupWidevineCdm(const char *argv0) {
   QString widevineDir = cdmFile.absolutePath();
 
   // Set Chromium flags for Widevine
-  // Qt WebEngine uses --widevine-path, NOT --widevine-cdm-path
+  // Qt WebEngine uses --widevine-path, NOT --widevine-path
   QByteArray flags = existingFlags;
   if (!flags.isEmpty()) {
     flags += " ";
@@ -105,11 +108,10 @@ int main(int argc, char *argv[]) {
   // Log Widevine status after application is created
 #ifdef WIDEVINE_CDM_ENABLED
   flags = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
-  if (flags.contains("widevine-cdm-path")) {
+  if (flags.contains("widevine-path")) {
     qDebug() << "Widevine CDM enabled via:" << flags;
   } else {
-    qWarning() << "Widevine CDM not found. DRM content (Netflix, Spotify, "
-                  "etc.) may not play.";
+    qWarning() << "Widevine CDM not found. DRM content (Netflix, Spotify, etc.) may not play.";
   }
 #else
   qDebug() << "Widevine CDM support not compiled in (ENABLE_WIDEVINE=OFF)";
