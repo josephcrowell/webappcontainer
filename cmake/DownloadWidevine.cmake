@@ -46,12 +46,13 @@ message(STATUS "Extracting Google Chrome deb package...")
 # Extract deb package using dpkg
 execute_process(
     COMMAND ar -x "${CHROME_DEB}"
+    WORKING_DIRECTORY "${WIDEVINE_DIR}"
     RESULT_VARIABLE DPKG_RESULT
     ERROR_VARIABLE DPKG_ERROR
 )
 
 execute_process(
-    COMMAND tar -xvf data.tar.xz -C "${WIDEVINE_DIR}"
+    COMMAND tar -xvf "${WIDEVINE_DIR}/data.tar.xz" -C "${WIDEVINE_DIR}"
     RESULT_VARIABLE DPKG_RESULT
     ERROR_VARIABLE DPKG_ERROR
 )
@@ -62,7 +63,12 @@ if(NOT DPKG_RESULT EQUAL 0)
 endif()
 
 # Clean up deb file
-file(REMOVE "${CHROME_DEB}")
+file(REMOVE
+    "${CHROME_DEB}"
+    "${WIDEVINE_DIR}/control.tar.xz"
+    "${WIDEVINE_DIR}/data.tar.xz"
+    "${WIDEVINE_DIR}/debian-binary"
+)
 
 # Look for libwidevinecdm.so in the extracted Chrome files
 set(WIDEVINE_LIB_EXTRACTED "${WIDEVINE_DIR}/opt/google/chrome/WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so")

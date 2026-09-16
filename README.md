@@ -1,6 +1,6 @@
 # Web App Container
 
-A lightweight, persistent web container built with **C++20** and **Qt 6.9+**. This application allows you to run web applications as standalone desktop apps with isolated profiles, custom icons, and system tray integration. It's a nice alternative to Electron or running web apps from Chrome/Chromium/Brave/Edge.
+A lightweight, persistent web container built with **C++20** and **Qt 6.11**. The application uses a Qt Quick/QML interface with Qt WebEngine and allows web applications to run as standalone desktop apps with isolated profiles, custom icons, downloads, and system tray integration.
 
 ## ✨ Features
 
@@ -15,7 +15,8 @@ A lightweight, persistent web container built with **C++20** and **Qt 6.9+**. Th
 
 ### Prerequisites
 
-* **Qt 6.9** or higher (specifically `QtWebEngine`, `QtWidgets`, and `QtSvg`)
+* **Qt 6.11** (Core, Gui, Qml, Quick, Quick Controls, WebEngineQuick,
+  WebEngineCore, Widgets, DBus, and Network)
 * **CMake 3.16+**
 * **C++20** compliant compiler (GCC/Clang)
 
@@ -75,12 +76,12 @@ sudo pacman -S webappcontainer
 git clone https://github.com/josephcrowell/webappcontainer.git
 cd webappcontainer
 
-# Create build directory
-mkdir build && cd build
+# Configure and build the default QML frontend
+cmake -S . -B build
+cmake --build build -j
 
-# Configure and build
-cmake ..
-make -j$(nproc)
+# Run the test suite
+ctest --test-dir build --output-on-failure
 ```
 
 ### DRM/Widevine Support
@@ -90,8 +91,8 @@ make -j$(nproc)
 The build system automatically downloads Widevine CDM from Google's Chrome component repository or finds the one installed by your distribution. No Chrome installation needed!
 
 ```bash
-cmake ..  # Widevine is enabled by default
-make -j$(nproc)
+cmake -S . -B build  # Widevine is enabled by default
+cmake --build build -j
 ```
 
 #### Disable Widevine
@@ -99,7 +100,7 @@ make -j$(nproc)
 To build without Widevine support:
 
 ```bash
-cmake -DENABLE_WIDEVINE=OFF ..
+cmake -S . -B build -DENABLE_WIDEVINE=OFF
 ```
 
 #### Update Widevine
@@ -119,22 +120,23 @@ make update-widevine
 
 #### DRM Status
 
-**Status**: ✅ **Widevine DRM is WORKING!**
-
-The application automatically downloads and configures Widevine CDM for DRM-protected content playback (Netflix, Spotify, etc.).
+When enabled, the application downloads or discovers a Widevine CDM and passes
+its library path to Chromium before WebEngine initialization. CDM discovery,
+Encrypted Media Extensions availability, key-system access, codec support, and
+successful encrypted playback are separate capabilities.
 
 **Verification:**
 
 ```bash
 # Check that Widevine is enabled
 ./webappcontainer --url "https://open.spotify.com" 2>&1 | grep Widevine
-# Output: "Widevine CDM enabled via: ...--widevine-path=..."
+# Expected diagnostic: "Widevine CDM enabled"
 ```
 
 **Requirements:**
 
 * Qt WebEngine must be built with proprietary codecs (default on most distributions)
-* Widevine CDM 4.10.2934.0 (automatically downloaded during build)
+* A compatible Widevine CDM (downloaded during supported Linux x86_64 builds)
 
 ## 🛠 Usage
 
