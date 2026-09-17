@@ -10,6 +10,8 @@
 #include <QTemporaryDir>
 #include <QUrl>
 
+class QQuickWindow;
+
 class AppController : public QObject {
   Q_OBJECT
   QML_ELEMENT
@@ -22,6 +24,7 @@ class AppController : public QObject {
 
 public:
   explicit AppController(QObject *parent = nullptr);
+  static void configureHiddenGraphicsCleanup(QQuickWindow *window);
   bool quitting() const { return m_quitting; }
   bool notificationBadge() const { return m_notificationBadge; }
   bool nativeTrayAvailable() const { return m_nativeTrayAvailable; }

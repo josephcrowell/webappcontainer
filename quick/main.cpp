@@ -91,6 +91,7 @@ int main(int argc, char *argv[]) {
     if (auto *quickWindow = qobject_cast<QQuickWindow *>(mainWindow)) {
       quickWindow->setPersistentGraphics(true);
       quickWindow->setPersistentSceneGraph(true);
+      AppController::configureHiddenGraphicsCleanup(quickWindow);
     }
     settingsStore.restoreWindowGeometry(mainWindow);
     settingsStore.bindWindow(mainWindow);

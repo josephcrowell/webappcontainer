@@ -32,6 +32,9 @@ ApplicationWindow {
 
     AppWebView {
         anchors.fill: parent
+        // Propagate window hiding to Chromium without suspending the page.
+        visible: root.visibility !== Window.Hidden &&
+                 root.visibility !== Window.Minimized
         // QQuickWebEngineProfile is the C++ backing type of WebEngineProfile.
         // qmllint disable unresolved-type
         webProfile: root.profileService.profile

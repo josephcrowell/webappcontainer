@@ -6,6 +6,7 @@
 #include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
+#include <QLoggingCategory>
 #include <QTimer>
 #include <QPointer>
 #include <QQuickItem>
@@ -14,6 +15,39 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QWindow>
+#include <QThread>
+
+Q_LOGGING_CATEGORY(hiddenGraphicsCleanupLog,
+                   "webappcontainer.graphicscleanup", QtWarningMsg)
+
+void AppController::configureHiddenGraphicsCleanup(QQuickWindow *window) {
+  if (!window)
+    return;
+  Q_ASSERT(window->thread() == QThread::currentThread());
+
+  auto *timer = new QTimer(window);
+  timer->setSingleShot(true);
+  timer->setInterval(0);
+  QObject::connect(window, &QWindow::visibilityChanged, timer,
+                   [timer](QWindow::Visibility visibility) {
+    if (visibility == QWindow::Hidden) {
+      qCDebug(hiddenGraphicsCleanupLog) << "cleanup scheduled";
+      timer->start();
+    } else {
+      if (timer->isActive())
+        qCDebug(hiddenGraphicsCleanupLog) << "cleanup cancelled";
+      timer->stop();
+    }
+  });
+
+  QPointer<QQuickWindow> guard(window);
+  QObject::connect(timer, &QTimer::timeout, window, [guard] {
+    if (!guard || guard->visibility() != QWindow::Hidden)
+      return;
+    qCDebug(hiddenGraphicsCleanupLog) << "cleanup requested";
+    guard->releaseResources();
+  });
+}
 
 AppController::AppController(QObject *parent) : QObject(parent) {
   QDBusConnectionInterface *interface = QDBusConnection::sessionBus().interface();
