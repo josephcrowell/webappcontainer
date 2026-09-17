@@ -32,6 +32,12 @@ WebEngineView {
         injectionPoint: WebEngineScript.DocumentCreation,
         worldId: WebEngineScript.MainWorld,
         runsOnSubFrames: false
+    }, {
+        name: "WebAppContainer Media Permission Bootstrap",
+        sourceCode: root.settingsStore.mediaPermissionBootstrapScript,
+        injectionPoint: WebEngineScript.DocumentCreation,
+        worldId: WebEngineScript.MainWorld,
+        runsOnSubFrames: false
     }]
     // qmllint enable unqualified unresolved-type
 

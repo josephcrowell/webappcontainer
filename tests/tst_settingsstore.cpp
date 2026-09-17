@@ -11,6 +11,7 @@
 #include <QTest>
 #include <QWindow>
 #include <QWidget>
+#include <QWebEnginePermission>
 
 class TestSettingsStore : public QObject {
   Q_OBJECT
@@ -27,6 +28,7 @@ private slots:
   void persistsProtocolHandlerAllowAndDeny();
   void migratesLegacyProtocolHandlerDecision();
   void migratesLegacyWidgetGeometry();
+  void createsMediaBootstrapOnlyForSavedOriginGrants();
 };
 
 void TestSettingsStore::defaultsAndPersistence() {
@@ -261,6 +263,24 @@ void TestSettingsStore::migratesLegacyWidgetGeometry() {
   QWindow restored;
   migrated.restoreWindowGeometry(&restored);
   QCOMPARE(restored.geometry(), expected);
+}
+
+void TestSettingsStore::createsMediaBootstrapOnlyForSavedOriginGrants() {
+  QTemporaryDir directory;
+  QVERIFY(directory.isValid());
+  const QUrl dialpad(QStringLiteral("https://dialpad.com/app"));
+  SettingsStore settings(directory.path());
+  settings.configureInitialOrigin(dialpad);
+  QVERIFY(settings.mediaPermissionBootstrapScript().isEmpty());
+  QVERIFY(settings.rememberPermissionGrant(
+      dialpad, int(QWebEnginePermission::PermissionType::MediaAudioCapture)));
+  settings.configureInitialOrigin(dialpad);
+  QVERIFY(settings.mediaPermissionBootstrapScript().contains(
+      QStringLiteral("audio: true")));
+  QVERIFY(settings.mediaPermissionBootstrapScript().contains(
+      QStringLiteral("video: false")));
+  settings.configureInitialOrigin(QUrl(QStringLiteral("https://example.com")));
+  QVERIFY(settings.mediaPermissionBootstrapScript().isEmpty());
 }
 
 QTEST_MAIN(TestSettingsStore)

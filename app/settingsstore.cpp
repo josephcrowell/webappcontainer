@@ -8,6 +8,7 @@
 #include <QScreen>
 #include <QWindow>
 #include <QWidget>
+#include <QWebEnginePermission>
 #include <limits>
 
 QString SettingsStore::permissionKey(const QUrl &origin, int permissionType) const {
@@ -223,6 +224,44 @@ bool SettingsStore::rememberProtocolHandlerDecision(const QUrl &origin,
     return false;
   m_settings.setValue(protocolHandlerKey(origin, scheme), accepted);
   return sync();
+}
+
+void SettingsStore::configureInitialOrigin(const QUrl &origin) {
+  const bool combined = hasPermissionGrant(
+      origin, int(QWebEnginePermission::PermissionType::MediaAudioVideoCapture));
+  const bool audio = combined || hasPermissionGrant(
+      origin, int(QWebEnginePermission::PermissionType::MediaAudioCapture));
+  const bool video = combined || hasPermissionGrant(
+      origin, int(QWebEnginePermission::PermissionType::MediaVideoCapture));
+  if (!audio && !video) {
+    m_mediaPermissionBootstrapScript.clear();
+    return;
+  }
+  m_mediaPermissionBootstrapScript = QStringLiteral(R"JS(
+(() => {
+  if (!navigator.mediaDevices || navigator.mediaDevices.__webAppContainerReady)
+    return;
+  const devices = navigator.mediaDevices;
+  const originalEnumerate = devices.enumerateDevices.bind(devices);
+  const originalGetUserMedia = devices.getUserMedia.bind(devices);
+  const requested = {audio: %1, video: %2};
+  let readiness = originalGetUserMedia(requested)
+    .then(stream => { stream.getTracks().forEach(track => track.stop()); })
+    .catch(async () => {
+      if (requested.audio && requested.video) {
+        const stream = await originalGetUserMedia({audio: true});
+        stream.getTracks().forEach(track => track.stop());
+      }
+    })
+    .catch(() => {});
+  devices.enumerateDevices = async function() {
+    await readiness;
+    return originalEnumerate();
+  };
+  Object.defineProperty(devices, "__webAppContainerReady", {value: true});
+})();
+)JS").arg(audio ? QStringLiteral("true") : QStringLiteral("false"),
+            video ? QStringLiteral("true") : QStringLiteral("false"));
 }
 
 QString SettingsStore::screenIdentifier(const QScreen *screen) {

@@ -169,6 +169,8 @@ qt_add_qml_module(webappcontainer
         app/iconloader.h
         app/launchconfiguration.cpp
         app/launchconfiguration.h
+        app/mediadevicesalt.cpp
+        app/mediadevicesalt.h
         app/navigationpolicy.cpp
         app/navigationpolicy.h
         app/notificationmodel.cpp
@@ -271,6 +273,8 @@ if(BUILD_TESTING)
 
     qt_add_executable(tst_push_profile_helper
         tests/push_profile_helper.cpp
+        app/mediadevicesalt.cpp
+        app/mediadevicesalt.h
     )
     qt_add_resources(tst_push_profile_helper push_helper_resources
         PREFIX "/scripts"
@@ -298,6 +302,16 @@ if(BUILD_TESTING)
         RUN_SERIAL TRUE
         LABELS "integration;push"
     )
+    add_test(NAME tst_media_device_persistence
+        COMMAND ${Python3_EXECUTABLE}
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_media_device_persistence.py"
+            $<TARGET_FILE:tst_push_profile_helper>
+    )
+    set_tests_properties(tst_media_device_persistence PROPERTIES
+        TIMEOUT 180
+        RUN_SERIAL TRUE
+        LABELS "integration;media"
+    )
     set_tests_properties(tst_deployed_qml PROPERTIES
         TIMEOUT 50
         RUN_SERIAL TRUE
@@ -307,6 +321,17 @@ if(BUILD_TESTING)
     qt_add_executable(tst_startup tests/tst_startup.cpp)
     target_link_libraries(tst_startup PRIVATE webappcontainer_core Qt6::Core Qt6::Test)
     add_test(NAME tst_startup COMMAND tst_startup)
+
+    qt_add_executable(tst_mediadevicesalt
+        tests/tst_mediadevicesalt.cpp
+        app/mediadevicesalt.cpp
+        app/mediadevicesalt.h
+    )
+    target_include_directories(tst_mediadevicesalt PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    target_link_libraries(tst_mediadevicesalt PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME tst_mediadevicesalt COMMAND tst_mediadevicesalt)
 
     qt_add_executable(tst_appcontroller
         tests/tst_appcontroller.cpp
@@ -375,6 +400,7 @@ if(BUILD_TESTING)
         Qt6::Gui
         Qt6::Qml
         Qt6::Test
+        Qt6::WebEngineCore
         Qt6::Widgets
     )
     add_test(NAME tst_settingsstore COMMAND tst_settingsstore)
@@ -391,6 +417,7 @@ if(BUILD_TESTING)
         Qt6::Gui
         Qt6::Qml
         Qt6::Test
+        Qt6::WebEngineCore
         Qt6::Widgets
     )
     add_test(NAME tst_x11geometry COMMAND tst_x11geometry)

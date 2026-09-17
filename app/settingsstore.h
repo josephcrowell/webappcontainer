@@ -11,6 +11,7 @@
 
 class QScreen;
 class QWindow;
+class QQuickWebEngineProfile;
 
 class SettingsStore final : public QObject {
   Q_OBJECT
@@ -24,6 +25,8 @@ class SettingsStore final : public QObject {
   Q_PROPERTY(int windowHeight READ windowHeight WRITE setWindowHeight NOTIFY windowGeometryChanged)
   Q_PROPERTY(bool windowMaximized READ windowMaximized WRITE setWindowMaximized
                  NOTIFY windowGeometryChanged)
+  Q_PROPERTY(QString mediaPermissionBootstrapScript READ mediaPermissionBootstrapScript
+                 CONSTANT)
 
 public:
   struct ScreenDescription {
@@ -39,6 +42,9 @@ public:
   int windowWidth() const { return m_windowWidth; }
   int windowHeight() const { return m_windowHeight; }
   bool windowMaximized() const { return m_windowMaximized; }
+  QString mediaPermissionBootstrapScript() const {
+    return m_mediaPermissionBootstrapScript;
+  }
   bool hasWindowPosition() const { return m_hasWindowPosition; }
   int windowOffsetX() const { return m_windowOffsetX; }
   int windowOffsetY() const { return m_windowOffsetY; }
@@ -56,6 +62,7 @@ public:
   Q_INVOKABLE bool rememberProtocolHandlerDecision(const QUrl &origin,
                                                    const QString &scheme,
                                                    bool accepted);
+  void configureInitialOrigin(const QUrl &origin);
   void restoreWindowGeometry(QWindow *window) const;
   void saveWindowGeometry(QWindow *window);
   void bindWindow(QWindow *window);
@@ -88,4 +95,5 @@ private:
   QString m_windowScreenId;
   QString m_windowScreenName;
   QRect m_windowScreenGeometry;
+  QString m_mediaPermissionBootstrapScript;
 };

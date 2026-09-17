@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
   QApplication::setWindowIcon(applicationIcon);
   ProfileService profileService(launchConfiguration);
   SettingsStore settingsStore(launchConfiguration.profilePath());
+  settingsStore.configureInitialOrigin(launchConfiguration.startUrl());
   AppController appController;
   QIcon trayIcon = IconLoader::load(launchConfiguration.trayIconPath());
   if (trayIcon.isNull())

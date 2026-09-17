@@ -4,6 +4,7 @@
 #include "profileservice.h"
 
 #include "launchconfiguration.h"
+#include "mediadevicesalt.h"
 
 #include <QDir>
 #include <QQuickWebEngineProfile>
@@ -11,10 +12,12 @@
 
 ProfileService::ProfileService(const LaunchConfiguration &configuration,
                                QObject *parent)
-    : QObject(parent),
-      m_profile(new QQuickWebEngineProfile(configuration.profileName(), this)) {
+    : QObject(parent) {
   if (!QDir().mkpath(configuration.profilePath()))
     qWarning() << "Could not create profile storage directory";
+  if (!MediaDeviceSalt::ensure(configuration.profilePath()))
+    qWarning() << "Could not persist the media device identity salt";
+  m_profile = new QQuickWebEngineProfile(configuration.profileName(), this);
   m_profile->setPersistentStoragePath(configuration.profilePath());
   m_profile->setCachePath(configuration.profilePath() + QDir::separator() +
                           QStringLiteral("cache"));
