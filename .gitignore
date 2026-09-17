@@ -59,6 +59,6 @@ compile_commands.json
 # Coding tools
 .ccls-cache
 .vscode
-.claude
+.kilo
 /.cache/clangd
 /graphify-out
